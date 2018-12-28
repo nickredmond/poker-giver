@@ -14,13 +14,36 @@ export class Table extends React.Component {
                 const data = {
                     players: [
                         {
-                            name: 'Big Nick'
+                            name: 'Big Nick',
+                            numberOfChips: 172096
                         },
                         {
-                            name: 'Long John'
+                            name: 'Long John 23',
+                            numberOfChips: 5002
                         },
                         {
-                            name: 'Kat Zeta'
+                            name: 'Kat Zeta Jo',
+                            numberOfChips: 10321066
+                        },
+                        {
+                            name: 'xlitl9078',
+                            numberOfChips: 12154
+                        },
+                        {
+                            name: 'Every Time !',
+                            numberOfChips: 7798
+                        },
+                        {
+                            name: 'legolas 8989',
+                            numberOfChips: 22012910
+                        },
+                        {
+                            name: 'waterchess',
+                            numberOfChips: 998
+                        },
+                        {
+                            name: 'once upon me',
+                            numberOfChips: 23412
                         }
                     ]
                 }

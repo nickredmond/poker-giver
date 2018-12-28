@@ -1,6 +1,6 @@
 <html>
     <head></head>
-    <body style="background-color: red">
+    <body style="background-color: #dedede">
         <div id="testdiv">testtesttest</div>
         <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         <style>
@@ -188,36 +188,41 @@
             var drawTable = function(ctx, x, y, width, height) {
                 var radius = 50;
                 ctx.fillStyle = "#046908";
+                ctx.strokeStyle = 'black';
                 roundRect(ctx, x, y, width, height, radius, true);
             }
 
-            var drawPlayerName = function(ctx, players, playerNumber, x, y) {
-                var playerName = players && players.length >= playerNumber ? players[playerNumber - 1].name : '[Empty]';
-                
-                var xOffset = -30;
-                var yOffset = 12;
-                var finalX = ((x + xOffset)|0) + 0.5;
-                var finalY = ((y + yOffset)|0) + 0.5;
+            var drawPlayerInfo = function(ctx, text, x, y, yOffset) {
+                var xOffset = 5 - parseInt(text.length * 3.5);
+                var finalX = x + xOffset
+                var finalY = y + yOffset
                 ctx.fillStyle = 'black';
-                ctx.fillText(playerName, finalX, finalY);
+                ctx.fillText(text, finalX, finalY);
             }
 
             var drawPlayer = function(ctx, players, playerNumber, x, y, radius) {
                 var color = players && players.length >= playerNumber ? getAvatarColor(playerNumber) : 'grey';
                 circle(ctx, x, y, radius, color, 'black');
-                drawPlayerName(ctx, players, playerNumber, x, y + radius)
+
+                var isPlayerInSeat = players && players.length >= playerNumber;
+                var playerName = isPlayerInSeat ? players[playerNumber - 1].name : '[Empty]';
+                drawPlayerInfo(ctx, playerName, x, y + radius, 12);
+                if (isPlayerInSeat) {
+                    var playerWorth = players[playerNumber - 1].numberOfChips || 0;
+                    drawPlayerInfo(ctx, playerWorth.toString(), x - 5, y + radius, 25);
+                }
             }
 
             var drawPlayers = function(ctx, players, tableStart, tableWidth, tableHeight) {
                 var avatarRadius = parseInt(tableWidth / 11);
 
                 var avatarX_left = parseInt(tableStart * 0.5);
-                var avatarX_center_left = parseInt(tableStart + (0.25 * tableWidth));
+                var avatarX_center_left = parseInt(tableStart + (0.2 * tableWidth));
                 var avatarX_center = parseInt(tableStart + (0.5 * tableWidth));
-                var avatarX_center_right = parseInt(tableStart + (0.75 * tableWidth));
+                var avatarX_center_right = parseInt(tableStart + (0.8 * tableWidth));
                 var avatarX_right = parseInt(tableStart + tableWidth + (0.5 * tableStart));
 
-                var avatarY_top = parseInt(tableStart * 0.45);
+                var avatarY_top = parseInt(tableStart * 0.33);
                 var avatarY_center = parseInt(tableStart + (0.5 * tableHeight));
                 var avatarY_bottom = parseInt(tableStart + tableHeight + (0.4 * tableStart));
 
@@ -259,14 +264,82 @@
             }
 
             var drawUserHand = function(ctx, canvas, rank1, suit1, rank2, suit2) {
-                var x = canvas.width * 0.2;
+                var x = canvas.width * 0.05;
                 var y = canvas.height * 0.6;
                 var width = canvas.width * 0.2;
                 var height = canvas.width * 0.3; 
 
-                drawUserCard(ctx, 'K', 'diamond', x, y, width, height);
-                drawUserCard(ctx, '10', 'heart', x + width - 15, y, width, height);
+                var user = players[currentPlayerIndex];
+                setTestText('yep ' + currentPlayerIndex)
+                if (user.card1) {
+                    setTestText("complete")
+                    drawUserCard(ctx, user.card1.rank, user.card1.suit, x, y, width, height);
+                }
+                if (user.card2) {
+                    drawUserCard(ctx, user.card2.rank, user.card2.suit, x + width - 15, y, width, height);
+                }
             };
+        </script>
+
+        <!-- Logic functions -->
+        <script>
+            var currentDeck;
+            var shuffleCards = function() {
+                var unshuffledCards = JSON.parse(JSON.stringify(DECK_OF_CARDS));
+                var shuffledCards = [];
+
+                for (var i = 0; i < DECK_OF_CARDS.length; i++) {
+                    var nextCardIndex = Math.floor(Math.random() * unshuffledCards.length);
+                    shuffledCards.push(unshuffledCards[nextCardIndex]);
+                    unshuffledCards.splice(nextCardIndex, 1);
+                }
+
+                return shuffledCards;
+            }
+
+            var bigBlindIndex;
+            var littleBlindIndex;
+            var incrementBlinds = function() {
+                if (!bigBlindIndex && bigBlindIndex !== 0) {
+                    bigBlindIndex = Math.floor(Math.random() * players.length);
+                    littleBlindIndex = bigBlindIndex === 0 ? players.length - 1 : bigBlindIndex - 1;
+                }
+                else {
+                    bigBlindIndex++;
+                    littleBlindIndex++;
+                    if (bigBlindIndex >= players.length) {
+                        bigBlindIndex = 0;
+                    }
+                    if (littleBlindIndex >= players.length) {
+                        littleBlindIndex = 0;
+                    }
+                }
+            }
+
+            var beginDeal = function() {
+                incrementBlinds();
+
+                currentDeck = shuffleCards();
+                var cardTimeout = 0;
+
+                players.forEach(player => {
+                    player.card1 = null;
+                    player.card2 = null;
+
+                    setTimeout(function() {
+                        var nextCard = currentDeck[0];
+                        currentDeck.splice(0, 1);
+                        player.card1 = nextCard;
+                    }, cardTimeout);
+                    setTimeout(function() {
+                        var nextCard = currentDeck[0];
+                        currentDeck.splice(0, 1);
+                        player.card2 = nextCard;
+                    }, cardTimeout + ((players.length - 1) * cardTimeout));
+
+                    cardTimeout += 200;
+                });
+            }
         </script>
 
         <!-- Base logic function (draw, update) -->
@@ -282,17 +355,40 @@
                 drawTable(ctx, tableStart, tableStart, tableWidth, tableHeight);
                 drawPlayers(ctx, getPlayers(), tableStart, tableWidth, tableHeight);
 
-                drawUserHand(ctx, canvas);
+                if (currentPlayerIndex === 0 || currentPlayerIndex) {
+                    drawUserHand(ctx, canvas);
+                }
+
+                if ((bigBlindIndex || bigBlindIndex === 0) && (littleBlindIndex || littleBlindIndex === 0)) {
+                    var blindLocations = [
+                        { x: tableStart + 10, y: tableStart + (tableHeight / 2) },
+                        { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
+                        { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
+                        { x: tableStart + (5 * tableWidth / 6), y: tableStart + 10 },
+                        { x: tableStart + tableWidth - 10, y: tableStart + (tableHeight / 2) },
+                        { x: tableStart + (5 * tableWidth / 6), y: tableStart + tableHeight - 10 },
+                        { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 },
+                        { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 }
+                    ];
+
+                    circle(ctx, blindLocations[bigBlindIndex].x, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
+                    circle(ctx, blindLocations[bigBlindIndex].x + 10, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
+                    circle(ctx, blindLocations[littleBlindIndex].x, blindLocations[littleBlindIndex].y, 5, 'red', 'red', 1);
+                }
             }
         </script>
 
         <script>
             var players = [];
+            var currentPlayerIndex;
 
             window.onload = function() {
                 document.addEventListener("message", function(event) {
                     var messageData = JSON.parse(event.data);
                     players = messageData.players;
+                    currentPlayerIndex = messageData.currentPlayerIndex || 0;
+
+                    beginDeal();
                 });
 
                 loadSpritesConfig();
