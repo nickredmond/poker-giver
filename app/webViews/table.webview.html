@@ -1,0 +1,312 @@
+<html>
+    <head></head>
+    <body style="background-color: red">
+        <div id="testdiv">testtesttest</div>
+        <canvas id="tableCanvas" width="100%" height="100%"></canvas>
+        <style>
+        
+        </style>
+
+        <!-- Utility drawing functions, e.g. rounded rect, circle, etc -->
+        <script>
+            var setTestText = function(text) {
+                document.getElementById('testdiv').innerHTML = text;
+            }
+
+            /** https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas */
+            function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            if (typeof stroke == 'undefined') {
+                stroke = true;
+            }
+            if (typeof radius === 'undefined') {
+                radius = 5;
+            }
+            if (typeof radius === 'number') {
+                radius = {tl: radius, tr: radius, br: radius, bl: radius};
+            } else {
+                var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+                for (var side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
+                }
+            }
+            ctx.beginPath();
+            ctx.moveTo(x + radius.tl, y);
+            ctx.lineTo(x + width - radius.tr, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+            ctx.lineTo(x + width, y + height - radius.br);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+            ctx.lineTo(x + radius.bl, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+            ctx.lineTo(x, y + radius.tl);
+            ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+            ctx.closePath();
+            if (fill) {
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.stroke();
+            }
+
+            }
+
+            function circle(ctx, centerX, centerY, radius, fillStyle, strokeStyle, lineWidth) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
+                ctx.lineWidth = lineWidth || 3;
+                ctx.strokeStyle = strokeStyle;
+                ctx.stroke();
+            }
+        </script>
+
+        <!-- Handle data from React Native -->
+        <script>
+            var handleMessageFromApp = function(event) {
+                // var messageData = JSON.parse(event.data);
+                // alert("name: " + messageData.name);
+                alert("hmmmm ")
+            };
+        </script>
+
+        <!-- Constants -->
+        <script>
+            var DECK_OF_CARDS = [
+                { rank: 'A', suit: 'spade' }, { rank: 'A', suit: 'diamond' }, { rank: 'A', suit: 'club' }, { rank: 'A', suit: 'heart' },
+                { rank: '2', suit: 'spade' }, { rank: '2', suit: 'diamond' }, { rank: '2', suit: 'club' }, { rank: '2', suit: 'heart' },
+                { rank: '3', suit: 'spade' }, { rank: '3', suit: 'diamond' }, { rank: '3', suit: 'club' }, { rank: '3', suit: 'heart' },
+                { rank: '4', suit: 'spade' }, { rank: '4', suit: 'diamond' }, { rank: '4', suit: 'club' }, { rank: '4', suit: 'heart' },
+                { rank: '5', suit: 'spade' }, { rank: '5', suit: 'diamond' }, { rank: '5', suit: 'club' }, { rank: '5', suit: 'heart' },
+                { rank: '6', suit: 'spade' }, { rank: '6', suit: 'diamond' }, { rank: '6', suit: 'club' }, { rank: '6', suit: 'heart' },
+                { rank: '7', suit: 'spade' }, { rank: '7', suit: 'diamond' }, { rank: '7', suit: 'club' }, { rank: '7', suit: 'heart' },
+                { rank: '8', suit: 'spade' }, { rank: '8', suit: 'diamond' }, { rank: '8', suit: 'club' }, { rank: '8', suit: 'heart' },
+                { rank: '9', suit: 'spade' }, { rank: '9', suit: 'diamond' }, { rank: '9', suit: 'club' }, { rank: '9', suit: 'heart' },
+                { rank: '10', suit: 'spade' }, { rank: '10', suit: 'diamond' }, { rank: '10', suit: 'club' }, { rank: '10', suit: 'heart' },
+                { rank: 'J', suit: 'spade' }, { rank: 'J', suit: 'diamond' }, { rank: 'J', suit: 'club' }, { rank: 'J', suit: 'heart' },
+                { rank: 'Q', suit: 'spade' }, { rank: 'Q', suit: 'diamond' }, { rank: 'Q', suit: 'club' }, { rank: 'Q', suit: 'heart' },
+                { rank: 'K', suit: 'spade' }, { rank: 'K', suit: 'diamond' }, { rank: 'K', suit: 'club' }, { rank: 'K', suit: 'heart' },
+            ];
+        </script>
+
+        <!-- Get data for game -->
+        <script>
+            var getPlayers = function() {
+                // sent from react native
+                return players || [];
+            };
+
+            var getAvatarColor = function(playerNumber) {
+                var colors = [
+                    'purple',
+                    'yellow',
+                    'blue',
+                    'orange',
+                    'green',
+                    'red',
+                    'brown',
+                    'pink'
+                ];
+                return colors[playerNumber - 1];
+            }
+        </script>
+
+        <!-- Config data, e.g. sprite image locations -->
+        <script>
+            var cardsSprite;
+            var spritesLocations;
+            var spriteWidth;
+            var spriteHeight;
+
+            var suitsSprite;
+
+            var loadSpritesConfig = function() {
+                cardsSprite = new Image();
+                cardsSprite.src = 'https://i.ibb.co/ZB85jHT/card-deck-161536-1280.png';
+
+                suitsSprite = new Image();
+                suitsSprite.src = 'https://i.ibb.co/R4X28Nd/suits.png';
+                
+                var numberOfColumns = 13;
+                var numberOfRows = 5;
+                var widthPerColumn = spriteWidth = cardsSprite.width / numberOfColumns;
+                var heightPerColumn = spriteHeight =  cardsSprite.height / numberOfRows;
+
+                spritesLocations = {};
+                var ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+                var suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
+                for (var rank = 0; rank < ranks.length; rank++) {
+                    for (var suit = 0; suit < suits.length; suit++) {
+                        var x = rank * widthPerColumn;
+                        var y = suit * heightPerColumn;
+                        var rankName = ranks[rank];
+                        var suitName = suits[suit];
+                        
+                        if (suit === 0) {
+                            spritesLocations[rankName] = {};
+                        }
+                        spritesLocations[rankName][suitName] = { x, y };
+                    }
+                }
+            }
+
+            var suitSpriteLocations = {
+                'spade': {
+                    getX: function() { return 0; },
+                    getY: function() { return 0; },
+                    getWidth: function() { return suitsSprite.width * 0.36; },
+                    getHeight: function() { return suitsSprite.height * 0.4; }
+                },
+                'heart': {
+                    getX: function() { return suitsSprite.width * 0.64; },
+                    getY: function() { return 0; },
+                    getWidth: function() { return suitsSprite.width * 0.36; },
+                    getHeight: function() { return suitsSprite.height * 0.4; }
+                },
+                'diamond': {
+                    getX: function() { return 0; },
+                    getY: function() { return suitsSprite.height * 0.6; },
+                    getWidth: function() { return suitsSprite.width * 0.36; },
+                    getHeight: function() { return suitsSprite.height * 0.4; }
+                },
+                'club': {
+                    getX: function() { return suitsSprite.width * 0.64; },
+                    getY: function() { return suitsSprite.height * 0.6; },
+                    getWidth: function() { return suitsSprite.width * 0.36; },
+                    getHeight: function() { return suitsSprite.height * 0.4; }
+                }
+            }
+        </script>
+
+        <!-- Load data from external source -->
+        <script>
+            
+            
+        </script>
+
+        <!-- Draw functions -->
+        <script>
+            var drawTable = function(ctx, x, y, width, height) {
+                var radius = 50;
+                ctx.fillStyle = "#046908";
+                roundRect(ctx, x, y, width, height, radius, true);
+            }
+
+            var drawPlayerName = function(ctx, players, playerNumber, x, y) {
+                var playerName = players && players.length >= playerNumber ? players[playerNumber - 1].name : '[Empty]';
+                
+                var xOffset = -30;
+                var yOffset = 12;
+                var finalX = ((x + xOffset)|0) + 0.5;
+                var finalY = ((y + yOffset)|0) + 0.5;
+                ctx.fillStyle = 'black';
+                ctx.fillText(playerName, finalX, finalY);
+            }
+
+            var drawPlayer = function(ctx, players, playerNumber, x, y, radius) {
+                var color = players && players.length >= playerNumber ? getAvatarColor(playerNumber) : 'grey';
+                circle(ctx, x, y, radius, color, 'black');
+                drawPlayerName(ctx, players, playerNumber, x, y + radius)
+            }
+
+            var drawPlayers = function(ctx, players, tableStart, tableWidth, tableHeight) {
+                var avatarRadius = parseInt(tableWidth / 11);
+
+                var avatarX_left = parseInt(tableStart * 0.5);
+                var avatarX_center_left = parseInt(tableStart + (0.25 * tableWidth));
+                var avatarX_center = parseInt(tableStart + (0.5 * tableWidth));
+                var avatarX_center_right = parseInt(tableStart + (0.75 * tableWidth));
+                var avatarX_right = parseInt(tableStart + tableWidth + (0.5 * tableStart));
+
+                var avatarY_top = parseInt(tableStart * 0.45);
+                var avatarY_center = parseInt(tableStart + (0.5 * tableHeight));
+                var avatarY_bottom = parseInt(tableStart + tableHeight + (0.4 * tableStart));
+
+                
+
+                ctx.font = "12px Arial";
+
+                drawPlayer(ctx, players, 1, avatarX_left, avatarY_center, avatarRadius);
+                drawPlayer(ctx, players, 2, avatarX_center_left, avatarY_top, avatarRadius);
+                drawPlayer(ctx, players, 3, avatarX_center, avatarY_top, avatarRadius);
+                drawPlayer(ctx, players, 4, avatarX_center_right, avatarY_top, avatarRadius);
+                drawPlayer(ctx, players, 5, avatarX_right, avatarY_center, avatarRadius);
+                drawPlayer(ctx, players, 6, avatarX_center_right, avatarY_bottom, avatarRadius);
+                drawPlayer(ctx, players, 7, avatarX_center, avatarY_bottom, avatarRadius);
+                drawPlayer(ctx, players, 8, avatarX_center_left, avatarY_bottom, avatarRadius);
+
+                playerName = players && players.length >= 2
+            }
+
+            var drawUserCard = function(ctx, rank, suit, x, y, width, height) {
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+
+                roundRect(ctx, x, y, width, height, 5, true, false);
+                roundRect(ctx, x, y, width, height, 5, false, true);
+
+                ctx.fillStyle = 'black';
+                ctx.font = '24px Arial';
+
+                if (rank.length > 1) {
+                    x -= 5;
+                }
+
+                ctx.fillText(rank, x + 8, y + 25);
+                var source = suitSpriteLocations[suit];
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 12, y + 28, width * 0.7, height * 0.5);
+                var rightOffsetX = rank.length > 1 ? 27 : 22;
+                ctx.fillText(rank, x + width - rightOffsetX, y + height - 10);
+            }
+
+            var drawUserHand = function(ctx, canvas, rank1, suit1, rank2, suit2) {
+                var x = canvas.width * 0.2;
+                var y = canvas.height * 0.6;
+                var width = canvas.width * 0.2;
+                var height = canvas.width * 0.3; 
+
+                drawUserCard(ctx, 'K', 'diamond', x, y, width, height);
+                drawUserCard(ctx, '10', 'heart', x + width - 15, y, width, height);
+            };
+        </script>
+
+        <!-- Base logic function (draw, update) -->
+        <script>
+            var draw = function(canvas) {
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                var tableStart = parseInt(canvas.width * 0.2);
+                var tableWidth = parseInt(canvas.width * 0.65);
+                var tableHeight = parseInt(canvas.height * 0.25);
+
+                drawTable(ctx, tableStart, tableStart, tableWidth, tableHeight);
+                drawPlayers(ctx, getPlayers(), tableStart, tableWidth, tableHeight);
+
+                drawUserHand(ctx, canvas);
+            }
+        </script>
+
+        <script>
+            var players = [];
+
+            window.onload = function() {
+                document.addEventListener("message", function(event) {
+                    var messageData = JSON.parse(event.data);
+                    players = messageData.players;
+                });
+
+                loadSpritesConfig();
+
+                var canvas = document.getElementById('tableCanvas');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                setInterval(function() {
+                    draw(canvas);
+                }, 1000 / 24);
+            }
+        </script>
+
+        
+    </body>
+</html>
