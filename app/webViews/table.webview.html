@@ -2,9 +2,30 @@
     <head></head>
     <body style="background-color: #dedede">
         <div id="testdiv">testtesttest</div>
+        <button id="button-call-check" class="game-button">none</button>
+        <button id="button-raise-bet" class="game-button">none</button>
+        <button id="button-fold" class="game-button">Fold</button>
+        <div id="bet-amount-dialog">
+            <span>Enter amount:&nbsp;</span>
+            <input id="bet-amount" type="number" />
+            <button onclick="onUserPlaceBet()">Place</button>
+        </div>
         <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         <style>
-        
+            .game-button {
+                position: absolute;
+                z-index: 1000;
+                padding: 0.25em 1em;
+                font-size: 1.25em;
+                display: none;
+            }
+
+            #betting-dialog {
+                position: absolute;
+                z-index: 1000;
+                padding: 1em;
+                display: none;
+            }
         </style>
 
         <!-- Utility drawing functions, e.g. rounded rect, circle, etc -->
@@ -108,6 +129,63 @@
                 ];
                 return colors[playerNumber - 1];
             }
+
+            var getPlayerDeckLocation = function(playerIndex, tableStart, tableWidth, tableHeight) {
+                var deckLocation = {};
+
+                switch (playerIndex) {
+                    case 0: 
+                        deckLocation = {
+                            x: tableStart + 20,
+                            y: tableStart + (tableHeight * 0.5) + 10
+                        };
+                        break;
+                    case 1: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.25),
+                            y: tableStart + 20
+                        };
+                        break;
+                    case 2: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.5),
+                            y: tableStart + 20
+                        };
+                        break;
+                    case 3: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.75),
+                            y: tableStart + 20
+                        };
+                        break;
+                    case 4: 
+                        deckLocation = {
+                            x: tableStart + tableWidth - 20,
+                            y: tableStart + (tableHeight * 0.5) - 15
+                        };
+                        break;
+                    case 5: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.75),
+                            y: tableStart + tableHeight - 28
+                        };
+                        break;
+                    case 6: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.5),
+                            y: tableStart + tableHeight - 28
+                        };
+                        break;
+                    case 7: 
+                        deckLocation = {
+                            x: tableStart + (tableWidth * 0.25),
+                            y: tableStart + tableHeight - 28
+                        };
+                        break;
+                }
+
+                return deckLocation;
+            }
         </script>
 
         <!-- Config data, e.g. sprite image locations -->
@@ -118,6 +196,22 @@
             var spriteHeight;
 
             var suitsSprite;
+
+            var loadButtons = function(canvasX, canvasY, canvasWidth, canvasHeight) {
+                var buttonsLeft = canvasX + parseInt(canvasWidth * 0.5);
+
+                var callCheckButton = document.getElementById('button-call-check');
+                callCheckButton.style.top = canvasY + parseInt(canvasHeight * 0.6);
+                callCheckButton.style.left = buttonsLeft;
+
+                var raiseBetButton = document.getElementById('button-raise-bet');
+                raiseBetButton.style.top = canvasY + parseInt(canvasHeight * 0.7);
+                raiseBetButton.style.left = buttonsLeft;
+
+                var foldButton = document.getElementById('button-fold');
+                foldButton.style.top = canvasY + parseInt(canvasHeight * 0.8);
+                foldButton.style.left = buttonsLeft;
+            }
 
             var loadSpritesConfig = function() {
                 cardsSprite = new Image();
@@ -200,9 +294,18 @@
                 ctx.fillText(text, finalX, finalY);
             }
 
+            var userOutlineColor = 'black'; // interval exists to alternate colors
             var drawPlayer = function(ctx, players, playerNumber, x, y, radius) {
                 var color = players && players.length >= playerNumber ? getAvatarColor(playerNumber) : 'grey';
-                circle(ctx, x, y, radius, color, 'black');
+                var outlineColor = 'black';
+                var playerIndex = playerNumber - 1;
+                if (playerIndex === currentPlayerIndex) {
+                    outlineColor = userOutlineColor;
+                }
+                else if (playerIndex === currentTurnIndex) {
+                    outlineColor = 'white';
+                }
+                circle(ctx, x, y, radius, color, outlineColor);
 
                 var isPlayerInSeat = players && players.length >= playerNumber;
                 var playerName = isPlayerInSeat ? players[playerNumber - 1].name : '[Empty]';
@@ -270,15 +373,56 @@
                 var height = canvas.width * 0.3; 
 
                 var user = players[currentPlayerIndex];
-                setTestText('yep ' + currentPlayerIndex)
                 if (user.card1) {
-                    setTestText("complete")
                     drawUserCard(ctx, user.card1.rank, user.card1.suit, x, y, width, height);
                 }
                 if (user.card2) {
                     drawUserCard(ctx, user.card2.rank, user.card2.suit, x + width - 15, y, width, height);
                 }
             };
+
+            var drawBlinds = function(ctx, tableStart, tableWidth, tableHeight) {
+                var blindLocations = [
+                    { x: tableStart + 10, y: tableStart + (tableHeight / 2) },
+                    { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
+                    { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
+                    { x: tableStart + (5 * tableWidth / 6), y: tableStart + 10 },
+                    { x: tableStart + tableWidth - 10, y: tableStart + (tableHeight / 2) },
+                    { x: tableStart + (5 * tableWidth / 6), y: tableStart + tableHeight - 10 },
+                    { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 },
+                    { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 }
+                ];
+
+                circle(ctx, blindLocations[bigBlindIndex].x, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
+                circle(ctx, blindLocations[bigBlindIndex].x + 10, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
+                circle(ctx, blindLocations[littleBlindIndex].x, blindLocations[littleBlindIndex].y, 5, 'red', 'red', 1);
+            }
+
+            var drawPlayerHands = function(ctx, tableStart, tableWidth, tableHeight) {
+                var index = 0;
+                ctx.fillStyle = 'grey';
+
+                players.forEach(player => {
+                    var playerDeckLocation = getPlayerDeckLocation(index, tableStart, tableWidth, tableHeight);
+                    if (player.card1) {
+                        ctx.fillRect(playerDeckLocation.x - 6, playerDeckLocation.y, 5, 8);
+                    }
+                    if (player.card2) {
+                        ctx.fillRect(playerDeckLocation.x + 1, playerDeckLocation.y, 5, 8);
+                    }
+
+                    index++;
+                });
+
+                ctx.fillStyle = 'black';
+            }
+        </script>
+
+        <!-- AI logic functions -->
+        <script>
+            var beginAiTurn = function(onTurnComplete) {
+
+            }
         </script>
 
         <!-- Logic functions -->
@@ -299,6 +443,9 @@
 
             var bigBlindIndex;
             var littleBlindIndex;
+            var bigBlindAmount;
+            var littleBlindAmount;
+
             var incrementBlinds = function() {
                 if (!bigBlindIndex && bigBlindIndex !== 0) {
                     bigBlindIndex = Math.floor(Math.random() * players.length);
@@ -316,29 +463,236 @@
                 }
             }
 
-            var beginDeal = function() {
+            var deductBlindsFromPlayers = function() {
+                players[bigBlindIndex].numberOfChips -= bigBlindAmount;
+                players[bigBlindIndex].currentBet = bigBlindAmount;
+                if (players[bigBlindIndex].numberOfChips < 0) {
+                    players[bigBlindIndex].numberOfChips = 0;
+                }
+
+                players[littleBlindIndex].numberOfChips -= littleBlindAmount;
+                players[littleBlindIndex].currentBet = littleBlindAmount;
+                if (players[littleBlindIndex].numberOfChips < 0) {
+                    players[littleBlindIndex].numberOfChips = 0;
+                }
+            }
+
+            var areBlindsSet = function() {
+                return (bigBlindIndex || bigBlindIndex === 0) && (littleBlindIndex || littleBlindIndex === 0);
+            }
+
+            var currentTurnIndex;
+            var numberOfTurnsPlayed = 0;
+            var currentBet = 0;
+            var currentPotAmount = 0;
+            var isBigBlindRaised = false;
+            var beginDeal = function(onDealComplete) {
+                isBigBlindRaised = false;
+                numberOfTurnsPlayed = 0;
+
                 incrementBlinds();
+                currentBet = bigBlindAmount;
+                currentPotAmount = bigBlindAmount + littleBlindAmount;
+                players.forEach(player => {
+                    player.currentBet = 0;
+                });
+                deductBlindsFromPlayers();
 
                 currentDeck = shuffleCards();
                 var cardTimeout = 0;
+                var cardDealInterval = 200;
+                var roundOfCardsTime = (players.length - 1) * cardDealInterval;
 
-                players.forEach(player => {
+                currentTurnIndex = bigBlindIndex + 1;
+                if (currentTurnIndex >= players.length) {
+                    currentTurnIndex = 0;
+                }
+
+                var numberOfCardsDealt = 0;
+                var totalCardsNeeded = players.length * 2;
+                for (var i = currentTurnIndex; i < currentTurnIndex + players.length; i++) {
+                    var currentIndex = i >= players.length ? i - players.length : i;
+                    var player = players[currentIndex];
                     player.card1 = null;
                     player.card2 = null;
 
-                    setTimeout(function() {
+                    setTimeout(function(nextPlayer) {
                         var nextCard = currentDeck[0];
                         currentDeck.splice(0, 1);
-                        player.card1 = nextCard;
-                    }, cardTimeout);
-                    setTimeout(function() {
-                        var nextCard = currentDeck[0];
-                        currentDeck.splice(0, 1);
-                        player.card2 = nextCard;
-                    }, cardTimeout + ((players.length - 1) * cardTimeout));
+                        nextPlayer.card1 = nextCard;
+                        numberOfCardsDealt++;
+                    }, cardTimeout, player);
 
-                    cardTimeout += 200;
+                    setTimeout(function(nextPlayer) {
+                        var nextCard = currentDeck[0];
+                        currentDeck.splice(0, 1);
+                        nextPlayer.card2 = nextCard;
+                        numberOfCardsDealt++;
+
+                        if (numberOfCardsDealt === totalCardsNeeded) {
+                            onDealComplete();
+                        }
+                    }, cardTimeout + roundOfCardsTime, player);
+
+                    cardTimeout += cardDealInterval;
+                }
+            }
+
+            var hideButtons = function() {
+                document.getElementById('button-call-check').style.display = 'none';
+                document.getElementById('button-raise-bet').style.display = 'none';
+                document.getElementById('button-fold').style.display = 'none';
+            }
+            
+            var showCallCheckButton = function() {
+                var buttonText = isCheck() ? 'Check' : 'Call ' + (currentBet - players[currentPlayerIndex].currentBet);
+                var callCheckButton = document.getElementById('button-call-check');
+                callCheckButton.innerHTML = buttonText;
+                callCheckButton.style.display = 'inherit';
+            }
+
+            var showRaiseBetButton = function() {
+                var buttonText = isBet() ? 'Bet' : 'Raise ' + currentBet;
+                var callCheckButton = document.getElementById('button-raise-bet');
+                callCheckButton.innerHTML = buttonText;
+                callCheckButton.style.display = 'inherit';
+            }
+
+            var showFoldButton = function() {
+                document.getElementById('button-fold').display = 'inherit';
+            }
+
+            var showBetAmountDialog = function() {
+                document.getElementById('bet-amount-dialog').style.display = 'block';
+            }
+
+            var onUserPlaceBet = function() {
+                var betAmount = document.getElementById('bet-amount').value;
+                onNextUserAction('bet', betAmount);
+            }
+
+            // if turn option is betting vs raising
+            var isBet = function() {
+                return currentBet === 0;
+            }
+
+            // if turn option is checking vs calling
+            var isCheck = function() {
+                return currentBet === 0 || (currentBet === bigBlindAmount && bigBlindIndex === currentPlayerIndex);
+            }
+        </script>
+
+        <!-- turn-taking logic -->
+        <script>
+            var setUserActions = function() {
+                document.getElementById('button-call-check').onclick = function() {
+                    var actionType = isCheck() ? 'check' : 'call';
+                    onNextUserAction(actionType); 
+                }
+
+                document.getElementById('button-raise-bet').onclick = function() {
+                    if (isBet()) {
+                        showBetAmountDialog();
+                    }
+                    else {
+                        onNextUserAction('raise');
+                    }
+                }
+
+                document.getElementById('button-fold').onclick = function() {
+                    onNextUserAction('fold');
+                }
+            }
+
+            /** actionType: 'check', 'call', 'bet', 'raise', 'fold'
+            /* actionValue (any): bet (number)
+            */
+            var onNextUserAction = function(actionType, actionValue) {
+                var activePlayer = players[currentTurnIndex]; 
+
+                switch (actionType) {
+                    case 'check': 
+                        break;
+                    case 'call': 
+                        currentPotAmount += currentBet;
+                        activePlayer.currentBet += currentBet;
+                        activePlayer.numberOfChips -= currentBet;
+                        break;
+                    case 'bet': 
+                        currentPotAmount += actionValue;
+                        activePlayer.numberOfChips -= actionValue;
+                        activePlayer.currentBet = actionValue;
+                        currentBet = actionValue;
+                        break;
+                    case 'raise': 
+                        currentPotAmount += 2 * currentBet;
+                        activePlayer.numberOfChips -= 2 * currentBet;
+                        activePlayer.currentBet += 2 * currentBet;
+                        break;
+                    case 'fold':
+                        activePlayer.card1 = null;
+                        activePlayer.card2 = null;
+                        break;
+                }
+
+                endTurn();
+            }
+
+            var incrementTurnIndex = function() {
+                currentTurnIndex = (currentTurnIndex + 1) % players.length;
+            }
+
+            var isOnePlayerLeft = function() {
+                var playersIn = players.filter(player => {
+                    return player.card1 !== null && player.card1 !== undefined;
                 });
+                return playersIn.length === 1;
+            }
+
+            // todo: redo all this because need to wait for players and shit
+            // e.g. onUserAction => beginTurn
+            // e.g. onOtherUserAction => etc
+            // e.g. onAiTurnComplete => beginTurn
+            // todo: where to increment turn index?
+            var isRoundComplete = false;
+            var startNextTurn = function() {
+                if (currentTurnIndex === currentPlayerIndex) {
+                    showCallCheckButton();
+                    showRaiseBetButton();
+                    showFoldButton();
+                }
+                // todo: else if human player then wait for their turn. 
+                //      then, use events to update chip counts and actions for other players (add chips, bet/raise)
+                else { // todo: get rid of this
+                    hideButtons();
+                    beginAiTurn();
+                }
+            }
+
+            var ROUNDS = ['pre-flop', 'flop', 'turn', 'river'];
+            var currentRoundIndex = 0;
+            var endTurn = function() {
+                numberOfTurnsPlayed++;
+                isRoundComplete = isOnePlayerLeft() || (numberOfTurnsPlayed >= players.length && areAllBetsEqual());
+
+                if (isRoundComplete) {
+                    numberOfTurnsPlayed = 0;
+
+                    if (currentRoundIndex === ROUNDS.length - 1) {
+                        // end hand, determine winner, reward pot, remove "out" players, start next round
+                    }
+                    else {
+                        // deal next round, reset turn index, etc(?)
+                        currentRoundIndex++;
+                    }
+                }
+                else {
+                    do {
+                        incrementTurnIndex();
+                    } while (!players[currentTurnIndex].card1);
+
+                    startNextTurn();
+                }
             }
         </script>
 
@@ -359,22 +713,10 @@
                     drawUserHand(ctx, canvas);
                 }
 
-                if ((bigBlindIndex || bigBlindIndex === 0) && (littleBlindIndex || littleBlindIndex === 0)) {
-                    var blindLocations = [
-                        { x: tableStart + 10, y: tableStart + (tableHeight / 2) },
-                        { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
-                        { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
-                        { x: tableStart + (5 * tableWidth / 6), y: tableStart + 10 },
-                        { x: tableStart + tableWidth - 10, y: tableStart + (tableHeight / 2) },
-                        { x: tableStart + (5 * tableWidth / 6), y: tableStart + tableHeight - 10 },
-                        { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 },
-                        { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 }
-                    ];
-
-                    circle(ctx, blindLocations[bigBlindIndex].x, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
-                    circle(ctx, blindLocations[bigBlindIndex].x + 10, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
-                    circle(ctx, blindLocations[littleBlindIndex].x, blindLocations[littleBlindIndex].y, 5, 'red', 'red', 1);
+                if (areBlindsSet()) {
+                    drawBlinds(ctx, tableStart, tableWidth, tableHeight);
                 }
+                drawPlayerHands(ctx, tableStart, tableWidth, tableHeight);
             }
         </script>
 
@@ -383,19 +725,27 @@
             var currentPlayerIndex;
 
             window.onload = function() {
+                /// GAME READY/INIT
                 document.addEventListener("message", function(event) {
                     var messageData = JSON.parse(event.data);
                     players = messageData.players;
                     currentPlayerIndex = messageData.currentPlayerIndex || 0;
 
-                    beginDeal();
-                });
+                    bigBlindAmount = 10;
+                    littleBlindAmount = 5;
 
-                loadSpritesConfig();
+                    beginDeal(function() {
+                        startNextTurn();
+                    });
+                });
 
                 var canvas = document.getElementById('tableCanvas');
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
+                var canvasRect = canvas.getBoundingClientRect();
+
+                loadSpritesConfig();
+                loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
 
                 setInterval(function() {
                     draw(canvas);
