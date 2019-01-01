@@ -614,7 +614,9 @@
 
             var onUserPlaceBet = function() {
                 var betAmount = document.getElementById('bet-amount').value;
-                onNextUserAction('bet', betAmount);
+                document.getElementById('bet-amount-dialog').style.display = 'none';
+                var actionType = isBet() ? 'bet' : 'raise';
+                onNextUserAction(actionType, betAmount);
             }
 
             // if turn option is betting vs raising
@@ -1032,12 +1034,7 @@
                 }
 
                 document.getElementById('button-raise-bet').onclick = function() {
-                    if (isBet()) {
-                        showBetAmountDialog();
-                    }
-                    else {
-                        onNextUserAction('raise');
-                    }
+                    showBetAmountDialog();
                 }
 
                 document.getElementById('button-fold').onclick = function() {
@@ -1080,7 +1077,7 @@
                         break;
                 }
 
-                setTestText('Player ' + players[currentTurnIndex] + ' ' + actionType + 's.');
+                setTestText('Player ' + players[currentTurnIndex].name + ' ' + actionType + 's.');
 
                 endTurn();
             }
