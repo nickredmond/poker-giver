@@ -20,7 +20,7 @@
                 display: none;
             }
 
-            #betting-dialog {
+            #bet-amount-dialog {
                 position: absolute;
                 z-index: 1000;
                 padding: 1em;
@@ -425,29 +425,27 @@
                 roundRect(ctx, x, y, width, height, 5, false, true);
 
                 ctx.fillStyle = 'black';
-                ctx.font = '24px Arial';
+                ctx.font = '18px Arial';
 
                 if (rank.length > 1) {
                     x -= 5;
                 }
 
-                ctx.fillText(rank, x + 8, y + 25);
+                ctx.fillText(rank, x + 5, y + 15);
                 var source = suitSpriteLocations[suit];
-                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 12, y + 28, width * 0.7, height * 0.5);
-                var rightOffsetX = rank.length > 1 ? 27 : 22;
-                ctx.fillText(rank, x + width - rightOffsetX, y + height - 10);
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 8, y + 17, width * 0.7, height * 0.5);
             }
 
             var drawCardsOnTable = function(ctx, tableStart, tableWidth, tableHeight) {
                 if (cardsOnTable.length > 0) {
                     var x = parseInt(tableStart + (0.15 * tableWidth));
                     var y = parseInt(tableStart + (0.3 * tableHeight));
-                    var width = parseInt(tableWidth * 0.1);
+                    var width = parseInt(tableWidth * 0.12);
                     var height = parseInt(width * 1.33);
 
                     cardsOnTable.forEach(card => {
                         drawCardOnTable(ctx, card.rank, card.suit, x, y, width, height);
-                        x += tableWidth * 0.12;
+                        x += tableWidth * 0.14;
                     });
                 }
             }
@@ -457,13 +455,14 @@
         <script>
             var beginAiTurn = function() {
                 setTimeout(() => {
-                    if (isBet()) {
-                        onNextUserAction('call');
+                    if (currentBet > 0) {
+                        var action = players[currentTurnIndex].currentBet === currentBet ? 'check' : 'call';
+                        onNextUserAction(action);
                     }
                     else {
                         onNextUserAction('check');
                     }
-                }, 2000);
+                }, 1000);
             }
         </script>
 
@@ -523,9 +522,10 @@
                 return (bigBlindIndex || bigBlindIndex === 0) && (littleBlindIndex || littleBlindIndex === 0);
             }
 
+            var currentCardIndex = 0;
             var drawCardFromDeck = function() {
-                var nextCard = currentDeck[0];
-                currentDeck = currentDeck.slice(0, 1);
+                var nextCard = currentDeck[currentCardIndex];
+                currentCardIndex++;
                 return nextCard;
             }
 
@@ -547,6 +547,7 @@
                 deductBlindsFromPlayers();
 
                 currentDeck = shuffleCards();
+                currentCardIndex = 0;
                 var cardTimeout = 0;
                 var cardDealInterval = 200;
                 var roundOfCardsTime = (players.length - 1) * cardDealInterval;
@@ -1107,6 +1108,31 @@
                 }
             }
 
+            var areAllBetsEqual = function() {
+                var areEqual = true;
+                for (var i = 0; i < players.length && areEqual; i++) {
+                    if (players[i].card1 && players[i].card2) {
+                        areEqual = players[i].currentBet === currentBet;
+                    }
+                }
+
+                return areEqual;
+            }
+
+            var beginRound = function() {
+                currentTurnIndex = bigBlindIndex + 1;
+                if (currentTurnIndex >= players.length) {
+                    currentTurnIndex = 0;
+                }
+
+                currentBet = 0;
+                players.forEach(player => {
+                    player.currentBet = 0;
+                });
+
+                startNextTurn();
+            }
+
             var numberOfRounds = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
@@ -1115,8 +1141,8 @@
 
                 if (isRoundComplete) {
                     numberOfTurnsPlayed = 0;
-
-                    if (currentRoundIndex === numberOfRounds) {
+                    if (roundNumber === numberOfRounds) {
+                        setTestText('winning bigly');
                         var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
                         winningPlayerRewards.forEach(reward => {
                             players[reward.playerIndex].numberOfChips += reward.winningAmount;
@@ -1124,11 +1150,13 @@
 
                         players.forEach(player => {
                             if (player.numberOfChips <= 0) {
-                                // boot player, or let player add chips until their turn?
+                                setTestText('player ' + player.name + ' has run out of chips.');
+                                // todo: boot player, or let player add chips until their turn?
                             }
                         })
 
                         cardsOnTable = [];
+                        setTestText('starting again...')
                         beginDeal(function() {
                             startNextTurn();
                         });
@@ -1140,14 +1168,18 @@
                         if (roundNumber === 2) { // flop
                             var timeout = 0;
                             for (var i = 0; i < 3; i++) {
-                                setTimeout(() => {
+                                setTimeout((index) => {
                                     cardsOnTable.push(drawCardFromDeck());
-                                }, timeout);
+                                    if (index === 2) {
+                                        beginRound();
+                                    }
+                                }, timeout, i);
                                 timeout += 250;
                             }
                         }
-                        else {
+                        else { // turn, river
                             cardsOnTable.push(drawCardFromDeck());
+                            beginRound();
                         }
                     }
                 }
