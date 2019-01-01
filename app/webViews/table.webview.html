@@ -1243,7 +1243,7 @@
                                         highestThreeWinners.push(winner);
                                     }
                                 }
-                                else {
+                                else if (cards.length === 2) {
                                      if (cardScore > highestTwoRank) {
                                          highestTwoRank = cardScore;
                                          highestTwoWinners = [winner];
@@ -1266,10 +1266,130 @@
                         winners = getNofaKindWinners(winners, 3);
                     }
                     else if (highestRank === TWO_PAIR_RANK) {
-                        // check highest pair ranks, then high card
+                        var highestPair1Score = 0;
+                        var highestPairWinners = [];
+                        var highestPair2Score = 0;
+                        var highCardScore = 0;
+
+                        winners.forEach(winner => {
+                            var hand = cardsOnTable.concat(winner.card1).concat(winner.card2);
+                            var cardsByRank = groupBy(hand, 'rank');
+                            var highestPairScore = 0;
+                            var secondHighestPairScore = 0;
+                            var highestCardScore = 0;
+
+                            Object.keys(cardsByRank).forEach(rank => { 
+                                var cardScore = getCardScore(rank);
+                                if (cardsByRank[rank].length === 2) {
+                                    if (cardScore > highestPairScore) {
+                                        highestPairScore = cardScore;
+                                    }
+                                    else if (cardScore > secondHighestPairScore) {
+                                        secondHighestPairScore = cardScore;
+                                    }
+                                    else if (cardScore > highestCardScore) {
+                                        highestCardScore = cardScore;
+                                    }
+                                }
+                                else if (cardScore > highestCardScore) { // must be single card cuz 3+ would automatically be a better hand
+                                    highestCardScore = cardScore;
+                                }
+                            });
+
+                            if (highestPairScore > highestPair1Score) {
+                                highestPair1Score = highestPairScore;
+                                highestPair2Score = secondHighestPairScore;
+                                highCardScore = highestCardScore;
+                                highestPairWinners = [winner];
+                            }
+                            else if (highestPairScore === highestPair1Score) {
+                                if (secondHighestPairScore > highestPair2Score) {
+                                    highestPair1Score = highestPairScore;
+                                    highestPair2Score = secondHighestPairScore;
+                                    highCardScore = highestCardScore;
+                                    highestPairWinners = [winner];
+                                }
+                                else if (secondHighestPairScore === highestPair2Score) {
+                                    if (highestCardScore > highCardScore) {
+                                        highestPair1Score = highestPairScore;
+                                        highestPair2Score = secondHighestPairScore;
+                                        highCardScore = highestCardScore;
+                                        highestPairWinners = [winner];
+                                    }
+                                    else if (highestCardScore === highCardScore) {
+                                        highestPairWinners.push(winner);
+                                    }
+                                }
+                            }
+                        });
+
+                        winners = highestPairWinners;
                     }
                     else if (highestRank === PAIR_RANK) {
-                        // check pair, then high cards
+                        var highPairScore = 0;
+                        var highPairWinners = [];
+                        var highCardScores = []; // highest cards in desc order
+
+                        winners.forEach(winner => {
+                            var hand = cardsOnTable.concat(winner.card1).concat(winner.card2);
+                            var cardsByRank = groupBy(hand, 'rank');
+                            var highestPairScore = 0;
+                            var highestCardScores = [];
+
+                            Object.keys(cardsByRank).forEach(rank => { 
+                                var cardScore = getCardScore(rank);
+                                if (cardsByRank[rank].length === 2 && cardScore > highestPairScore) {
+                                    highestPairScore = cardScore;
+                                }
+                                else { // must be single card cuz 3+ would automatically be a better hand
+                                    if (highestCardScores.length < 3) {
+                                        highestCardScores.push(cardScore);
+                                        if (highestCardScores.length === 3) {
+                                            highestCardScores.sort((a, b) => { return b - a; });
+                                        }
+                                    }
+                                    else {
+                                        var swappedScore = null;
+                                        for (var i = 0; i < highestCardScores.length; i++) {
+                                            if (swappedScore) {
+                                                var tempScore = highestCardScores[i];
+                                                highestCardScores[i] = swappedScore;
+                                                swappedScore = tempScore;
+                                            }
+                                            else if (cardScore > highestCardScores[i]) {
+                                                swappedScore = highestCardScores[i]
+                                                highestCardScores[i] = cardScore;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                            if (highestPairScore > highPairScore) {
+                                highPairScore = highestPairScore;
+                                highPairWinners = [winner];
+                                highCardScores = highestCardScores;
+                            }
+                            else if (highestPairScore === highPairScore) {
+                                var isTied = true;
+                                for (var i = 0; i < highCardScores.length && isTied; i++) {
+                                    if (highestCardScores[i] > highCardScores[i]) {
+                                        highPairWinners = [winner];
+                                        highCardScores = highestCardScores;
+                                        isTied = false;
+                                    }
+                                    else {
+                                        isTied = highestCardScores[i] === highCardScores[i];
+                                    }
+                                }
+
+                                if (isTied) {
+                                    highPairWinners.push(winner);
+                                }
+                            }
+                        });
+
+                        winners = highPairWinners;
                     }
                     else if (highestRank === HIGH_CARD_RANK) { // high card
                         var highCardScores = [];
