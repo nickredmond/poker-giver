@@ -455,8 +455,15 @@
 
         <!-- AI logic functions -->
         <script>
-            var beginAiTurn = function(onTurnComplete) {
-
+            var beginAiTurn = function() {
+                setTimeout(() => {
+                    if (isBet()) {
+                        onNextUserAction('call');
+                    }
+                    else {
+                        onNextUserAction('check');
+                    }
+                }, 2000);
             }
         </script>
 
@@ -1039,35 +1046,41 @@
             }
 
             /** actionType: 'check', 'call', 'bet', 'raise', 'fold'
-            /* actionValue (any): bet (number)
+            /* actionValue (any): bet/raise (number)
             */
             var onNextUserAction = function(actionType, actionValue) {
                 var activePlayer = players[currentTurnIndex]; 
+                var actionAmount = parseInt(actionValue) || 0;
 
                 switch (actionType) {
                     case 'check': 
                         break;
                     case 'call': 
-                        currentPotAmount += currentBet;
-                        activePlayer.currentBet += currentBet;
-                        activePlayer.numberOfChips -= currentBet;
+                        var amountToCall = currentBet - activePlayer.currentBet;
+                        currentPotAmount += amountToCall;
+                        activePlayer.currentBet = currentBet;
+                        activePlayer.numberOfChips -= amountToCall;
                         break;
                     case 'bet': 
-                        currentPotAmount += actionValue;
-                        activePlayer.numberOfChips -= actionValue;
-                        activePlayer.currentBet = actionValue;
-                        currentBet = actionValue;
+                        currentPotAmount += actionAmount;
+                        activePlayer.numberOfChips -= actionAmount;
+                        activePlayer.currentBet = actionAmount;
+                        currentBet = actionAmount;
                         break;
                     case 'raise': 
-                        currentPotAmount += 2 * currentBet;
-                        activePlayer.numberOfChips -= 2 * currentBet;
-                        activePlayer.currentBet += 2 * currentBet;
+                        var totalBet = (currentBet - activePlayer.currentBet) + actionAmount;
+                        currentPotAmount += totalBet;
+                        activePlayer.numberOfChips -= totalBet;
+                        currentBet += actionAmount;
+                        activePlayer.currentBet = currentBet;
                         break;
                     case 'fold':
                         activePlayer.card1 = null;
                         activePlayer.card2 = null;
                         break;
                 }
+
+                setTestText('Player ' + players[currentTurnIndex] + ' ' + actionType + 's.');
 
                 endTurn();
             }
