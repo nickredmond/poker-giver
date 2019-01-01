@@ -660,9 +660,10 @@
             var getFourofaKind = function(cards) {
                 var cardsByRank = {};
                 var fourOfaKind = null;
-                for (var i = 0; i < cards.length; i++) {
+                
+                for (var i = 0; i < cards.length && !fourOfaKind; i++) {
                     var card = cards[i];
-                    if (Object.keys(cardsByRank).includes(card.rank)) {
+                    if (cardsByRank[card.rank]) {
                         cardsByRank[card.rank].push(card);
                         if (cardsByRank[card.rank].length === 4) {
                             fourOfaKind = cardsByRank[card.rank];
@@ -672,56 +673,64 @@
                         cardsByRank[card.rank] = [card];
                     }
                 }
-
+                
                 var maxRankingCard = null;
                 if (fourOfaKind) {
                     Object.keys(cardsByRank).forEach(rank => {
                         if (maxRankingCard === null && rank !== fourOfaKind[0].rank) {
                             maxRankingCard = cardsByRank[rank][0];
                         }
-                        else if (rank !== fourOfaKind[0].rank && getCardScore(rank, true) > maxRankingCard.rank) {
-                            maxRankingCard = cardsByRank[rank][0];
+                        else {
+                            var maxCardScore = maxRankingCard ? getCardScore(maxRankingCard.rank) : 0;
+                            if (rank !== fourOfaKind[0].rank && getCardScore(rank, true) > maxCardScore) {
+                                maxRankingCard = cardsByRank[rank][0];
+                            }
                         }
                     });
                 }
-
-                var result = fourOfaKind || null;
-                if (maxRankingCard) {
-                    fourOfaKind = threeOfaKind.concat(maxRankingCard);
+                
+                var result = null;
+                if (fourOfaKind) {
+                    result = fourOfaKind.concat(maxRankingCard);
                 }
-
                 return result;
             }
             
             var getFullHouse = function(cards) {
-                var twoOfSameSuit = null;
-                var threeOfSameSuit = null;
+                var twoOfSameRank = null;
+                var threeOfSameRank = null;
 
                 if (cards.length >= 5) {
-                    var cardsBySuit = {};
+                    var cardsByRank = {};
                     cards.forEach(card => {
-                        if (cardsBySuit[card.suit]) {
-                            cardsBySuit[card.suit].push(card);
+                        if (cardsByRank[card.rank]) {
+                            cardsByRank[card.rank].push(card);
                         }
                         else {
-                            cardsBySuit[card.suit] = [card];
+                            cardsByRank[card.rank] = [card];
                         }
                     });
 
-                    var suits = Object.keys(cardsBySuit);
-                    for (var i = 0; i < suits.length; i++) {
-                        if (cardsBySuit[suits[i]].length >= 3) {
-                            threeOfSameSuit = cardsBySuit[suits[i]];
+                    var ranks = Object.keys(cardsByRank);
+                    for (var i = 0; i < ranks.length; i++) {
+                        if (cardsByRank[ranks[i]].length >= 3) {
+                            threeOfSameRank = cardsByRank[ranks[i]];
                         }
-                        else if (cardsBySuit[suits[i]].length >= 2) {
-                            if (!twoOfSameSuit || cardsBySuit[suits[i]][0].rank > twoOfSameSuit[0].rank) {
-                                twoOfSameSuit = cardsBySuit[suits[i]];
+                        else if (cardsByRank[ranks[i]].length >= 2) {
+                            if (!twoOfSameRank || cardsByRank[ranks[i]][0].rank > twoOfSameRank[0].rank) {
+                                twoOfSameRank = cardsByRank[ranks[i]];
                             }
                         }
                     }
                 }
-
-                return twoOfSameSuit && threeOfSameSuit ? threeOfSameSuit.concat(twoOfSameSuit) : null;  
+                
+                var result = null;
+                if (threeOfSameRank && twoOfSameRank) {
+                    threeOfSameRank = threeOfSameRank.slice(0, 3);
+                    twoOfSameRank = twoOfSameRank.slice(0, 2);
+                    result = threeOfSameRank.concat(twoOfSameRank);
+                }
+                return result;
             }
 
             /** return flush or null if there is none
@@ -767,8 +776,8 @@
 
                 var straight = [];
                 var ace = null;
+                
                 for (var i = 0; i < cards.length && straight.length < 5; i++) {
-                    setMessageText('yonkers ' + i)
                     if (straight.length === 0) {
                         straight[0] = cards[i];
                     }
@@ -784,12 +793,10 @@
                     }
                 }
 
-                setMessageText('ifhy')
                 if (ace && is2345(straight)) {
                     straight.push(ace);
                 }
-                setMessageText('who dat boy')
-
+                
                 var result = straight.length === 5 ? straight : null;
                 return result;
             }
@@ -977,7 +984,7 @@
                 var aceScore = isAceHigh ? 14 : 1;
                 var cardRanks = {
                     'A': aceScore,
-                    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 1, '8': 8,
+                    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
                     '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13
                 };
                 return cardRanks[cardRank];
@@ -1152,6 +1159,7 @@
                         })
 
                         cardsOnTable = [];
+                        roundNumber = 1;
                         setMessageText('starting again...')
                         beginDeal(function() {
                             startNextTurn();
@@ -1208,7 +1216,7 @@
                     if (player.card1 && player.card2) {
                         var allCards = cardsOnTable.concat(player.card1).concat(player.card2);
                         var hand = getHandAndScore(allCards);
-                        setMessageText("to the limit")
+                        
                         if (hand.score === highestRank) {
                             winners.push(player);
                         }
@@ -1233,11 +1241,13 @@
                     }
                 });
 
-                setMessageText("we have a winner")
+                setMessageText("we have a winner " + highestRank)
                 var winningAmountsByPlayerIndex = null;
                 if (winners.length > 1) {
+                    setMessageText("s1")
                     // if royal then just split the pot because everybody's a winner
                     if ([STRAIGHT_FLUSH_RANK, STRAIGHT_RANK, FLUSH_RANK].includes(highestRank)) {
+                        setMessageText('s2')
                         var highCardWinners = [];
                         var highCardScore = 0;
 
@@ -1262,8 +1272,8 @@
                         winners = getNofaKindWinners(winners, 4);
                     }
                     else if (highestRank === FULL_HOUSE_RANK) {
-                        var highestThreeRank;
-                        var highestTwoRank;
+                        var highestThreeRank = 0;
+                        var highestTwoRank = 0;
                         var highestThreeWinners;
                         var highestTwoWinners;
 
@@ -1468,6 +1478,7 @@
                         winners = finalWinners;
                     }
                 
+                    setMessageText("granular")
                     winningAmountsByPlayerIndex = getWinningAmountsByPlayerIndex(winners);
                 }
                 else { // single winner
@@ -1554,13 +1565,15 @@
                 var winningAmountsByPlayerIndex = [];
                 var winningNames = winners.map(function(winner) { return winner.name });
                 for (var i = 0; i < players.length; i++) {
-                    if (winningNames.includes(player[i].name)) {
+                    if (winningNames.includes(players[i].name)) {
                         winningAmountsByPlayerIndex.push({
                             playerIndex: i,
                             winningAmount: parseInt(currentPotAmount / winners.length)
                         });
                     }
                 }
+
+                return winningAmountsByPlayerIndex;
             }
 
             var groupBy = function(items, propertyName) {
@@ -1624,27 +1637,39 @@
                     //     startNextTurn();
                     // });
 
-                    var cardz = [
-                        { rank: '', suit: '' },
-                        { rank: '', suit: '' },
-                        { rank: '', suit: '' },
-                        { rank: '', suit: '' },
-                        { rank: '', suit: '' }
+                    // winning determination verified for:
+                    // full house, 
+                    players = [
+                        {
+                            card1: { rank: '7', suit: 'diamond' },
+                            card2: { rank: '4', suit: 'club' },
+                            name: 'a1'
+                        },
+                        {
+                            card1: { rank: '7', suit: 'spade' },
+                            card2: { rank: 'Q', suit: 'club' },
+                            name: 'a2'
+                        },
+                        {
+                            card1: { rank: '4', suit: 'spade' },
+                            card2: { rank: '6', suit: 'heart' },
+                            name: 'a3'
+                        }
                     ];
-                    var cards = [
-                        { rank: '8', suit: 'spade' },
-                        { rank: 'A', suit: 'diamond' },
-                        { rank: '8', suit: 'diamond' },
+                    cardsOnTable = [
+                        { rank: '4', suit: 'heart' },
+                        { rank: '6', suit: 'spade' },
+                        { rank: '5', suit: 'club' },
                         { rank: '8', suit: 'club' },
-                        { rank: '4', suit: 'spade' },
-                        { rank: '3', suit: 'club' },
-                        { rank: '4', suit: 'heart' }
+                        { rank: '10', suit: 'heart' }
                     ];
-                    // checked: royal, pair, 2-pair, 3-kind, straight, flush, straight flush
-                    setMessageText('checking hand')
-                    var hand = getFullHouse(cards);
-                    var yep = hand ? 'yes' : 'no'
-                    setMessageText('is hand ' + yep)
+                    currentPotAmount = 100
+                    var x = determineWinningAmountsByPlayerIndex();
+                    var y = '';
+                    x.forEach(z => {
+                        y += '[' + z.playerIndex + ',' + z.winningAmount + ']'
+                    })
+                    setMessageText('h ' + y)
                 });
 
                 var canvas = document.getElementById('tableCanvas');
