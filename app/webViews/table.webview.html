@@ -5,20 +5,33 @@
         <button id="button-call-check" class="game-button">none</button>
         <button id="button-raise-bet" class="game-button">none</button>
         <button id="button-fold" class="game-button">Fold</button>
+        <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
             <span>Enter amount:&nbsp;</span>
             <input id="bet-amount" type="number" />
             <div id="bet-button-holder">
-                <button id="bet-button" onclick="onUserPlaceBet()">none</button>
+                <button id="cancel-button" class="bet-dialog-button" onclick="hideBetAmountDialog()">Cancel</button>
+                <button id="bet-button" class="bet-dialog-button" onclick="onUserPlaceBet()">none</button>
             </div>
         </div>
         <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         <style>
             .game-button {
                 position: absolute;
-                z-index: 1000;
+                z-index: 998;
                 padding: 0.25em 1em;
                 font-size: 1.25em;
+                display: none;
+            }
+
+            #modal-overlay {
+                position: absolute;
+                z-index: 999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
                 display: none;
             }
 
@@ -32,13 +45,19 @@
             #bet-button-holder {
                 text-align: center;
             }
-            #bet-button {
+            .bet-dialog-button {
                 border: none;
-                background-color: #116611;
                 color: white;
                 margin-top: 0.5em;
                 font-weight: bold;
                 font-size: 1.25em;
+            }
+            #bet-button {
+                background-color: #117711;
+                margin-left: 0.5em;
+            }
+            #cancel-button {
+                background-color: #991111;
             }
 
             #message-box {
@@ -647,6 +666,9 @@
             var beginDeal = function(onDealComplete) {
                 isBigBlindRaised = false;
                 numberOfTurnsPlayed = 0;
+                playerCountAtStartOfRound = players.filter(player => {
+                    return player.numberOfChips > 0;
+                }).length;
 
                 incrementBlinds();
                 currentBet = bigBlindAmount;
@@ -721,14 +743,22 @@
 
             var showBetAmountDialog = function() {
                 document.getElementById('bet-button').innerHTML = isBet() ? 'Bet' : 'Raise';
+                document.getElementById('modal-overlay').style.display = 'block';
                 document.getElementById('bet-amount-dialog').style.display = 'block';
             }
 
-            var onUserPlaceBet = function() {
-                var betAmount = document.getElementById('bet-amount').value;
+            var hideBetAmountDialog = function() {
+                document.getElementById('modal-overlay').style.display = 'none';
                 document.getElementById('bet-amount-dialog').style.display = 'none';
-                var actionType = isBet() ? 'bet' : 'raise';
-                onNextUserAction(actionType, betAmount);
+            }
+
+            var onUserPlaceBet = function() {
+                var betAmount = parseInt(document.getElementById('bet-amount').value) || 0;
+                if (betAmount) {
+                    hideBetAmountDialog();
+                    var actionType = isBet() ? 'bet' : 'raise';
+                    onNextUserAction(actionType, betAmount);
+                }
             }
 
             // if turn option is betting vs raising
@@ -1154,26 +1184,49 @@
             var onNextUserAction = function(actionType, actionValue) {
                 var activePlayer = players[currentTurnIndex]; 
                 var actionAmount = parseInt(actionValue) || 0;
+                var isAllIn = false;
+                var actionDisplayAmount;
 
                 switch (actionType) {
                     case 'check': 
                         break;
                     case 'call': 
                         var amountToCall = currentBet - activePlayer.currentBet;
+                        actionDisplayAmount = amountToCall;
+                        if (amountToCall >= activePlayer.numberOfChips) {
+                            isAllIn = true;
+                            activePlayer.numberOfChips = 0;
+                        }
+                        else {
+                            activePlayer.numberOfChips -= amountToCall;
+                        }
                         currentPotAmount += amountToCall;
                         activePlayer.currentBet = currentBet;
-                        activePlayer.numberOfChips -= amountToCall;
                         break;
                     case 'bet': 
+                        actionDisplayAmount = actionAmount;
+                        if (actionAmount >= activePlayer.numberOfChips) {
+                            isAllIn = true;
+                            activePlayer.numberOfChips = 0;
+                        }
+                        else {
+                            activePlayer.numberOfChips -= actionAmount;
+                        }
                         currentPotAmount += actionAmount;
-                        activePlayer.numberOfChips -= actionAmount;
                         activePlayer.currentBet = actionAmount;
                         currentBet = actionAmount;
                         break;
                     case 'raise': 
+                        actionDisplayAmount = actionAmount;
                         var totalBet = (currentBet - activePlayer.currentBet) + actionAmount;
+                        if (totalBet >= activePlayer.numberOfChips) {
+                            isAllIn = true;
+                            activePlayer.numberOfChips = 0;
+                        }
+                        else {
+                            activePlayer.numberOfChips -= totalBet;
+                        }
                         currentPotAmount += totalBet;
-                        activePlayer.numberOfChips -= totalBet;
                         currentBet += actionAmount;
                         activePlayer.currentBet = currentBet;
                         break;
@@ -1183,7 +1236,17 @@
                         break;
                 }
 
-                setMessageText('Player ' + players[currentTurnIndex].name + ' ' + actionType + 's.');
+                var actionText = '';
+                if (isAllIn) {
+                    actionText = 'goes all in';
+                }
+                else if (actionType === 'call' || actionType === 'raise') {
+                    actionText = actionType + 's ' + actionDisplayAmount;
+                }
+                else {
+                    actionText = actionType + 's';
+                }
+                setMessageText('Player ' + players[currentTurnIndex].name + ' ' + actionText + '.');
 
                 endTurn();
             }
@@ -1220,7 +1283,7 @@
                 var equalBet;
                 for (var i = 0; i < players.length && areEqual; i++) {
                     if (players[i].card1 && players[i].card2) {
-                        if (!equalBet) {
+                        if (equalBet !== 0 && !equalBet) {
                             equalBet = players[i].currentBet;
                         }
                         else {
@@ -1248,6 +1311,9 @@
                     player.currentBet = 0;
                 });
 
+                playerCountAtStartOfRound = players.filter(player => {
+                    return player.numberOfChips > 0;
+                });
                 startNextTurn();
             }
             
@@ -1300,12 +1366,17 @@
                 return displayName;
             }
 
+            var playerCountAtStartOfRound = 0;
+            var isAllPlayersPlayed = function() {
+                return numberOfTurnsPlayed >= playerCountAtStartOfRound;
+            }
+
             var numberOfRounds = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
                 numberOfTurnsPlayed++;
                 var onlyPlayerIn = getOnlyPlayerIn();
-                var isRoundComplete = onlyPlayerIn || (numberOfTurnsPlayed >= players.length && areAllBetsEqual());
+                var isRoundComplete = onlyPlayerIn || (isAllPlayersPlayed() && areAllBetsEqual());
 
                 if (isRoundComplete) {
                     numberOfTurnsPlayed = 0;
