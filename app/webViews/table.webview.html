@@ -8,7 +8,9 @@
         <div id="bet-amount-dialog">
             <span>Enter amount:&nbsp;</span>
             <input id="bet-amount" type="number" />
-            <button onclick="onUserPlaceBet()">Place</button>
+            <div id="bet-button-holder">
+                <button id="bet-button" onclick="onUserPlaceBet()">none</button>
+            </div>
         </div>
         <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         <style>
@@ -25,6 +27,18 @@
                 z-index: 1000;
                 padding: 1em;
                 display: none;
+                background-color: #444;
+            }
+            #bet-button-holder {
+                text-align: center;
+            }
+            #bet-button {
+                border: none;
+                background-color: #116611;
+                color: white;
+                margin-top: 0.5em;
+                font-weight: bold;
+                font-size: 1.25em;
             }
 
             #message-box {
@@ -215,6 +229,15 @@
                 var foldButton = document.getElementById('button-fold');
                 foldButton.style.top = canvasY + parseInt(canvasHeight * 0.8);
                 foldButton.style.left = buttonsLeft;
+            }
+
+            var loadDialogs = function(canvasX, canvasY, canvasWidth, canvasHeight) {
+                var betDialogLeft = canvasX + parseInt(canvasWidth * 0.05);
+                var betDialogTop = canvasY + parseInt(canvasHeight * 0.4);
+                var betDialog = document.getElementById('bet-amount-dialog');
+                betDialog.style.left = betDialogLeft;
+                betDialog.style.top = betDialogTop;
+                betDialog.style.width = parseInt(canvasWidth * 0.75);
             }
 
             var loadSpritesConfig = function() {
@@ -444,8 +467,8 @@
             var drawCardsOnTable = function(ctx, tableStart, tableWidth, tableHeight) {
                 if (cardsOnTable.length > 0) {
                     ctx.lineWidth = 2;
-                    var x = parseInt(tableStart + (0.15 * tableWidth));
-                    var y = parseInt(tableStart + (0.3 * tableHeight));
+                    var x = parseInt(tableStart + (0.16 * tableWidth));
+                    var y = parseInt(tableStart + (0.28 * tableHeight));
                     var width = parseInt(tableWidth * 0.12);
                     var height = parseInt(width * 1.33);
 
@@ -455,20 +478,101 @@
                     });
                 }
             }
+
+            var drawPot = function(ctx, potAmount, tableStart, tableWidth, tableHeight) {
+                var offsetPerDigit = 2;
+                var numberOfDigits = potAmount.toString().length;
+                var x = tableStart + (0.4 * tableWidth) - (offsetPerDigit * numberOfDigits);
+                var y = tableStart + (0.65 * tableHeight);
+
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText('pot: ' + potAmount, x, y);
+            }
         </script>
 
         <!-- AI logic functions -->
         <script>
+            var numberOfAggressions = 0;
             var beginAiTurn = function() {
+                var turnLengthMillis = (Math.random() * 2500) + 300;
                 setTimeout(() => {
-                    if (currentBet > 0) {
-                        var action = players[currentTurnIndex].currentBet === currentBet ? 'check' : 'call';
-                        onNextUserAction(action);
+                    var player = players[currentTurnIndex];
+                    var hand = cardsOnTable.concat([player.card1, player.card2]);
+                    var bettingOdds = getOdds(hand);
+                    var pick = Math.random();
+                    var agressionOffset = player.currentBet === currentBet ? 0 : 0.1; // minimize raising
+                    var isAggressive = bettingOdds - (0.1 * numberOfAggressions) - agressionOffset >= pick;
+
+                    if (isAggressive) {
+                        numberOfAggressions++;
+                        var ratioOfFunds = Math.random();
+                        var betAmount = Math.min(
+                            parseInt(player.numberOfChips * 0.001), 
+                            parseInt(ratioOfFunds * player.numberOfChips)
+                        );
+                        var raiseBetAction = player.currentBet === currentBet ? 'bet' : 'raise';
+                        onNextUserAction(raiseBetAction, betAmount);
                     }
                     else {
-                        onNextUserAction('check');
+                        var chanceOfFold = 1 - bettingOdds;
+                        var isFold = Math.random() <= chanceOfFold;
+                        if (isFold) {
+                            onNextUserAction('fold');
+                        }
+                        else {
+                            var callCheckAction = player.currentBet === currentBet ? 'check' : 'call';
+                            onNextUserAction(callCheckAction);
+                        }
                     }
-                }, 200);
+                }, turnLengthMillis);
+            }
+
+            // return number between [0, 1] that represents odds in match for AI
+            var getOdds = function(cards) {
+                var odds = 0.5;
+
+                if (cards.length === 2) {
+                    if (getPair(cards)) {
+                        odds += 0.3;
+                    }
+                    else {
+                        cards.sort(generateCardSortingFunction(true));
+                        var highCardScore = getCardScore(cards[0].rank);
+                        if (highCardScore > 10) {
+                            odds += 0.2;
+                        }
+                        else if (highCardScore < 7) {
+                            odds -= 0.2;
+                        }
+                    }
+                }
+                else {
+                    if (getRoyalFlush(cards) || getStraightFlush(cards) || 
+                        getFourofaKind(cards) || getFullHouse(cards)) {
+
+                        odds += 0.5;
+                    }
+                    else {
+
+                        cards.sort(generateCardSortingFunction(true));
+                        var highCardScore = getCardScore(cards[0].rank);
+
+                        if (getFlush(cards) || getStraight(cards) || getThreeofaKind(cards)) {
+                            if (highCardScore > 10) {
+                                odds += 0.4;
+                            }
+                            else {
+                                odds += 0.25;
+                            }
+                        }
+                        else if (highCardScore < 7) {
+                            odds -= 0.2;
+                        }
+                    }
+                }
+
+                return odds;
             }
         </script>
 
@@ -605,7 +709,7 @@
             }
 
             var showRaiseBetButton = function() {
-                var buttonText = isBet() ? 'Bet' : 'Raise ' + currentBet;
+                var buttonText = isBet() ? 'Bet' : 'Raise';
                 var callCheckButton = document.getElementById('button-raise-bet');
                 callCheckButton.innerHTML = buttonText;
                 callCheckButton.style.display = 'inherit';
@@ -616,6 +720,7 @@
             }
 
             var showBetAmountDialog = function() {
+                document.getElementById('bet-button').innerHTML = isBet() ? 'Bet' : 'Raise';
                 document.getElementById('bet-amount-dialog').style.display = 'block';
             }
 
@@ -1084,14 +1189,16 @@
             }
 
             var incrementTurnIndex = function() {
-                currentTurnIndex = (currentTurnIndex + 1) % players.length;
+                do {
+                    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+                } while (!players[currentTurnIndex].card1 || players[currentTurnIndex].numberOfChips <= 0);
             }
 
-            var isOnePlayerLeft = function() {
+            var getOnlyPlayerIn = function() {
                 var playersIn = players.filter(player => {
                     return player.card1 !== null && player.card1 !== undefined;
                 });
-                return playersIn.length === 1;
+                return playersIn.length === 1 ? playersIn[0] : null;
             }
 
             var startNextTurn = function() {
@@ -1110,9 +1217,15 @@
 
             var areAllBetsEqual = function() {
                 var areEqual = true;
+                var equalBet;
                 for (var i = 0; i < players.length && areEqual; i++) {
                     if (players[i].card1 && players[i].card2) {
-                        areEqual = players[i].currentBet === currentBet;
+                        if (!equalBet) {
+                            equalBet = players[i].currentBet;
+                        }
+                        else {
+                            areEqual = players[i].currentBet === equalBet;
+                        }
                     }
                 }
 
@@ -1120,10 +1233,11 @@
             }
 
             var beginRound = function() {
+                // todo: remove when removing/refactoring AI
+                numberOfAggressions = 0;
+
                 currentTurnIndex = bigBlindIndex + 1;
-                while (!players[currentTurnIndex].card1) {
-                    incrementTurnIndex();
-                }
+                incrementTurnIndex();
 
                 if (currentTurnIndex >= players.length) {
                     currentTurnIndex = 0;
@@ -1136,34 +1250,95 @@
 
                 startNextTurn();
             }
+            
+            var getHandDisplayName = function(score, cards) {
+                var displayName = '';
+                cards.sort(generateCardSortingFunction(true));
+                var cardsDisplay = null;
+                cards.forEach(card => {
+                    if (!cardsDisplay) {
+                        cardsDisplay = card.rank;
+                    }
+                    else {
+                        cardsDisplay += ', ' + card.rank;
+                    }
+                })
+
+                switch (score) {
+                    case ROYAL_FLUSH_RANK: 
+                        displayName = 'royal flush';
+                        break;
+                    case STRAIGHT_FLUSH_RANK:
+                        displayName = 'straight flush: ' + cardsDisplay;
+                        break;
+                    case FOUR_OF_A_KIND_RANK:
+                        displayName = '4 of a kind: ' + cardsDisplay;
+                        break;
+                    case FULL_HOUSE_RANK: 
+                        displayName = 'full house: ' + cardsDisplay;
+                        break;
+                    case FLUSH_RANK:
+                        displayName = 'flush (' + cards[0].suit + 's): ' + cardsDisplay;
+                        break;
+                    case STRAIGHT_RANK: 
+                        displayName = 'straight: ' + cardsDisplay;
+                        break;
+                    case THREE_OF_A_KIND_RANK:
+                        displayName = '3 of a kind: ' + cardsDisplay;
+                        break;
+                    case TWO_PAIR_RANK: 
+                        displayName = '2 pair: ' + cardsDisplay;
+                        break;
+                    case PAIR_RANK: 
+                        displayName = 'pair: ' + cardsDisplay;
+                        break;
+                    case HIGH_CARD_RANK:
+                        displayName = 'high card: ' + cardsDisplay;
+                        break;
+                }
+
+                return displayName;
+            }
 
             var numberOfRounds = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
                 numberOfTurnsPlayed++;
-                var isRoundComplete = isOnePlayerLeft() || (numberOfTurnsPlayed >= players.length && areAllBetsEqual());
+                var onlyPlayerIn = getOnlyPlayerIn();
+                var isRoundComplete = onlyPlayerIn || (numberOfTurnsPlayed >= players.length && areAllBetsEqual());
 
                 if (isRoundComplete) {
                     numberOfTurnsPlayed = 0;
-                    if (roundNumber === numberOfRounds) {
-                        var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
-                        winningPlayerRewards.forEach(reward => {
-                            players[reward.playerIndex].numberOfChips += reward.winningAmount;
-                        });
+                    if (onlyPlayerIn || roundNumber === numberOfRounds) {
+                        if (onlyPlayerIn) {
+                            setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
+                            onlyPlayerIn.numberOfChips += currentPotAmount;
+                        }
+                        else {
+                            var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
+                            winningPlayerRewards.forEach(reward => {
+                                players[reward.playerIndex].numberOfChips += reward.winningAmount;
+                            });
+                        }
 
                         players.forEach(player => {
                             if (player.numberOfChips <= 0) {
-                                setMessageText('player ' + player.name + ' has run out of chips.');
-                                // todo: boot player, or let player add chips until their turn?
+                                setMessageText('Player ' + player.name + ' has run out of chips.');
+                                // todo: boot player, or let player add chips until their turn? 
+                                // also fix timing of this message
                             }
                         })
 
                         cardsOnTable = [];
                         roundNumber = 1;
-                        setMessageText('starting again...')
-                        beginDeal(function() {
-                            startNextTurn();
-                        });
+                        
+                        // todo: maybe make animation of pot being rewarded or some shit
+                        setTimeout(() => {
+                            setMessageText('Dealing...');
+                            beginDeal(function() {
+                                startNextTurn();
+                            });
+                        }, 3000);
                     }
                     else {
                         roundNumber++;
@@ -1188,10 +1363,7 @@
                     }
                 }
                 else {
-                    do {
-                        incrementTurnIndex();
-                    } while (!players[currentTurnIndex].card1);
-
+                    incrementTurnIndex();
                     startNextTurn();
                 }
             }
@@ -1245,7 +1417,6 @@
                     }
                 });
 
-                setMessageText("we have a winner " + winners.length + ', ' + highestRank)
                 var winningAmountsByPlayerIndex = null;
                 if (winners.length > 1) {
                     // if royal then just split the pot because everybody's a winner
@@ -1499,7 +1670,26 @@
                     }];
                 }
 
-               // setMessageText("constable")
+                var playerWord = 'Player';
+                var winWord = 'wins';
+                if (winningAmountsByPlayerIndex.length > 1) {
+                    playerWord = 'Players';
+                    winWord = 'win';
+                }
+                var playerName = null;
+                winningAmountsByPlayerIndex.forEach(amountByIndex => {
+                    var name = players[amountByIndex.playerIndex].name;
+                    if (!playerName) {
+                        playerName = name;
+                    }
+                    else {
+                        playerName += ', ' + name;
+                    }
+                });
+                var hand = handsByPlayerName[players[winningAmountsByPlayerIndex[0].playerIndex].name];
+                var handName = getHandDisplayName(highestRank, hand);
+                setMessageText(playerWord + ' ' + playerName + ' ' + winWord + ' with ' + handName);
+
                 return winningAmountsByPlayerIndex;
             }
 
@@ -1631,6 +1821,8 @@
                 drawPlayerHands(ctx, tableStart, tableWidth, tableHeight);
 
                 drawCardsOnTable(ctx, tableStart, tableWidth, tableHeight);
+                var potAmount = currentPotAmount || 0;
+                drawPot(ctx, potAmount, tableStart, tableWidth, tableHeight);
             }
         </script>
 
@@ -1662,6 +1854,7 @@
 
                 loadSpritesConfig();
                 loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
+                loadDialogs(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
 
                 setInterval(function() {
                     draw(canvas);
