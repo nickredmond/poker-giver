@@ -289,6 +289,20 @@
                 }
             }
 
+            var userOutlineInterval;
+            var animateUserOutline = function() {
+                userOutlineInterval = setInterval(() => {
+                    userOutlineColor = (userOutlineColor === 'white') ? 'black' : 'white';
+                }, 750);
+            }
+            var stopUserOutlineAnimation = function() {
+                if (userOutlineInterval) {
+                    clearInterval(userOutlineInterval);
+                    userOutlineColor = 'black';
+                    userOutlineInterval = null;
+                }
+            }
+
             var suitSpriteLocations = {
                 'spade': {
                     getX: function() { return 0; },
@@ -520,7 +534,7 @@
                     var hand = cardsOnTable.concat([player.card1, player.card2]);
                     var bettingOdds = getOdds(hand);
                     var pick = Math.random();
-                    var agressionOffset = player.currentBet === currentBet ? 0 : 0.1; // minimize raising
+                    var agressionOffset = player.currentBet === currentBet ? 0.1 : 0.2; // minimize raising
                     var isAggressive = bettingOdds - (0.1 * numberOfAggressions) - agressionOffset >= pick;
 
                     if (isAggressive) {
@@ -534,7 +548,7 @@
                         onNextUserAction(raiseBetAction, betAmount);
                     }
                     else {
-                        var chanceOfFold = 1 - bettingOdds;
+                        var chanceOfFold = 1 - bettingOdds + 0.1;
                         var isFold = Math.random() <= chanceOfFold;
                         if (isFold) {
                             onNextUserAction('fold');
@@ -1269,11 +1283,13 @@
                     showCallCheckButton();
                     showRaiseBetButton();
                     showFoldButton();
+                    animateUserOutline();
                 }
                 // todo: else if human player then wait for their turn. 
                 //      then, use events to update chip counts and actions for other players (add chips, bet/raise)
                 else { // todo: get rid of this (move hideButtons to end of user turn? and remove beginAiTurn because server will handle AI and player sockets)
                     hideButtons();
+                    stopUserOutlineAnimation();
                     beginAiTurn(); // todo: implement this
                 }
             }
