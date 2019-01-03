@@ -723,13 +723,15 @@
                 var cardDealInterval = 200;
                 var roundOfCardsTime = (players.length - 1) * cardDealInterval;
 
-                currentTurnIndex = bigBlindIndex + 1;
-                if (currentTurnIndex >= players.length) {
-                    currentTurnIndex = 0;
-                }
+                currentTurnIndex = bigBlindIndex;
+                var isBeforeDeal = true;
+                incrementTurnIndex(isBeforeDeal);
 
                 var numberOfCardsDealt = 0;
-                var totalCardsNeeded = players.length * 2;
+                var activePlayersCount = players.filter(player => {
+                    return !player.isOut;
+                }).length;
+                var totalCardsNeeded = activePlayersCount * 2;
                 for (var i = currentTurnIndex; i < currentTurnIndex + players.length; i++) {
                     var currentIndex = i >= players.length ? i - players.length : i;
                     var player = players[currentIndex];
@@ -749,6 +751,7 @@
                             numberOfCardsDealt++;
 
                             if (numberOfCardsDealt === totalCardsNeeded) {
+                                setMessageText('Player "' + players[currentTurnIndex].name + '"\'s turn.');
                                 onDealComplete();
                             }
                         }, cardTimeout + roundOfCardsTime, player);
@@ -1245,6 +1248,7 @@
                         if (amountToCall >= activePlayer.numberOfChips) {
                             isAllIn = true;
                             activePlayer.isOut = true;
+                            actionDisplayAmount = activePlayer.numberOfChips;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1259,6 +1263,7 @@
                         if (actionAmount >= activePlayer.numberOfChips) {
                             isAllIn = true;
                             activePlayer.isOut = true;
+                            actionDisplayAmount = activePlayer.numberOfChips;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1275,6 +1280,7 @@
                         if (totalBet >= activePlayer.numberOfChips) {
                             isAllIn = true;
                             activePlayer.isOut = true;
+                            actionDisplayAmount = activePlayer.numberOfChips;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1293,15 +1299,15 @@
 
                 var actionText = '';
                 if (isAllIn) {
-                    actionText = 'goes all in';
+                    actionText = 'goes all in (' + actionDisplayAmount + ')';
                 }
-                else if (actionType === 'call' || actionType === 'raise') {
+                else if (actionType === 'call' || actionType === 'raise' || actionType === 'bet') {
                     actionText = actionType + 's ' + actionDisplayAmount;
                 }
                 else {
                     actionText = actionType + 's';
                 }
-                setMessageText('Player ' + players[currentTurnIndex].name + ' ' + actionText + '.');
+                setMessageText('Player "' + players[currentTurnIndex].name + '" ' + actionText + '.');
 
                 if (currentPlayerIndex === currentTurnIndex) {
                     hideButtons();
@@ -1311,10 +1317,12 @@
                 endTurn();
             }
 
-            var incrementTurnIndex = function() {
+            var incrementTurnIndex = function(isBeforeDeal = false) {
                 do {
                     currentTurnIndex = (currentTurnIndex + 1) % players.length;
-                } while (!players[currentTurnIndex].card1 || players[currentTurnIndex].numberOfChips <= 0);
+                } while (
+                    players[currentTurnIndex].numberOfChips <= 0 || !(isBeforeDeal || players[currentTurnIndex].card1)
+                );
             }
 
             var getOnlyPlayerIn = function() {
