@@ -86,6 +86,7 @@
                 padding: 0.25em 0;
                 border: 1px solid #888;
                 min-height: 1em;
+                font-size: 1.25em;
             }
         </style>
 
@@ -97,37 +98,37 @@
 
             /** https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas */
             function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-            if (typeof stroke == 'undefined') {
-                stroke = true;
-            }
-            if (typeof radius === 'undefined') {
-                radius = 5;
-            }
-            if (typeof radius === 'number') {
-                radius = {tl: radius, tr: radius, br: radius, bl: radius};
-            } else {
-                var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
-                for (var side in defaultRadius) {
-                radius[side] = radius[side] || defaultRadius[side];
+                if (typeof stroke == 'undefined') {
+                    stroke = true;
                 }
-            }
-            ctx.beginPath();
-            ctx.moveTo(x + radius.tl, y);
-            ctx.lineTo(x + width - radius.tr, y);
-            ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
-            ctx.lineTo(x + width, y + height - radius.br);
-            ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
-            ctx.lineTo(x + radius.bl, y + height);
-            ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
-            ctx.lineTo(x, y + radius.tl);
-            ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-            ctx.closePath();
-            if (fill) {
-                ctx.fill();
-            }
-            if (stroke) {
-                ctx.stroke();
-            }
+                if (typeof radius === 'undefined') {
+                    radius = 5;
+                }
+                if (typeof radius === 'number') {
+                    radius = {tl: radius, tr: radius, br: radius, bl: radius};
+                } else {
+                    var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+                    for (var side in defaultRadius) {
+                    radius[side] = radius[side] || defaultRadius[side];
+                    }
+                }
+                ctx.beginPath();
+                ctx.moveTo(x + radius.tl, y);
+                ctx.lineTo(x + width - radius.tr, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+                ctx.lineTo(x + width, y + height - radius.br);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+                ctx.lineTo(x + radius.bl, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+                ctx.lineTo(x, y + radius.tl);
+                ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+                ctx.closePath();
+                if (fill) {
+                    ctx.fill();
+                }
+                if (stroke) {
+                    ctx.stroke();
+                }
 
             }
 
@@ -709,10 +710,8 @@
                     player.isPlayed = false;
                     player.isOut = player.numberOfChips <= 0;
                 });
-                
-                var activePlayersCount = players.filter(player => {
-                    return !player.isOut;
-                }).length;
+
+                var activePlayersCount = getActivePlayersCount();
                 if (activePlayersCount < 2) {
                     // todo: impelement end-game for this scenario
                     alert("congrats! you beat everyone!");
@@ -1351,24 +1350,37 @@
                 }
             }
 
+            var getActivePlayersCount = function() {
+                return players.filter(player => {
+                    return !player.isOut;
+                }).length;
+            }
+             
             var beginRound = function() {
-                // todo: remove when removing/refactoring AI
-                numberOfAggressions = 0;
-
-                currentTurnIndex = bigBlindIndex + 1;
-                incrementTurnIndex();
-
-                if (currentTurnIndex >= players.length) {
-                    currentTurnIndex = 0;
+                var activePlayersCount = getActivePlayersCount();
+                if (activePlayersCount < 2) { // all players but one are all-in
+                    roundNumber = NUMBER_OF_ROUNDS;
+                    endTurn();
                 }
+                else {
+                    // todo: remove when removing/refactoring AI
+                    numberOfAggressions = 0;
 
-                currentBet = 0;
-                players.forEach(player => {
-                    player.currentBet = 0;
-                    player.isPlayed = false;
-                });
+                    currentTurnIndex = bigBlindIndex + 1;
+                    incrementTurnIndex();
 
-                startNextTurn();
+                    if (currentTurnIndex >= players.length) {
+                        currentTurnIndex = 0;
+                    }
+
+                    currentBet = 0;
+                    players.forEach(player => {
+                        player.currentBet = 0;
+                        player.isPlayed = false;
+                    });
+
+                    startNextTurn();
+                }
             }
             
             var getHandDisplayName = function(score, cards) {
@@ -1429,14 +1441,14 @@
                 return isAllPlayed;
             }
 
-            var numberOfRounds = 4; // pre-flop, flop, turn, river
+            var NUMBER_OF_ROUNDS = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
                 var onlyPlayerIn = getOnlyPlayerIn();
                 var isRoundComplete = onlyPlayerIn || isAllPlayersPlayed(); 
 
                 if (isRoundComplete) {
-                    if (onlyPlayerIn || roundNumber === numberOfRounds) {
+                    if (onlyPlayerIn || roundNumber === NUMBER_OF_ROUNDS) {
                         if (onlyPlayerIn) {
                             setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
                             onlyPlayerIn.numberOfChips += currentPotAmount;
