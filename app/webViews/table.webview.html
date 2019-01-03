@@ -658,13 +658,19 @@
                     littleBlindIndex = bigBlindIndex === 0 ? players.length - 1 : bigBlindIndex - 1;
                 }
                 else {
-                    bigBlindIndex++;
-                    littleBlindIndex++;
-                    if (bigBlindIndex >= players.length) {
-                        bigBlindIndex = 0;
-                    }
-                    if (littleBlindIndex >= players.length) {
-                        littleBlindIndex = 0;
+                    do {
+                        bigBlindIndex++;
+                        if (bigBlindIndex >= players.length) {
+                            bigBlindIndex = 0;
+                        }
+                    } while(players[bigBlindIndex].isOut);
+                    littleBlindIndex = bigBlindIndex === 0 ? players.length - 1 : bigBlindIndex - 1;
+
+                    while (players[littleBlindIndex].isOut) {
+                        littleBlindIndex--;
+                        if (littleBlindIndex < 0) {
+                            littleBlindIndex = players.length - 1;
+                        }
                     }
                 }
             }
@@ -700,6 +706,14 @@
             var currentPotAmount = 0;
             var isBigBlindRaised = false;
             var beginDeal = function(onDealComplete) {
+                var activePlayersCount = players.filter(player => {
+                    return !player.isOut;
+                }).length;
+                if (activePlayersCount < 2) {
+                    // todo: impelement end-game for this scenario
+                    alert("congrats! you beat everyone!");
+                }
+                
                 setMessageText('Dealing...');
                 isBigBlindRaised = false;
                 numberOfTurnsPlayed = 0;
@@ -728,9 +742,6 @@
                 incrementTurnIndex(isBeforeDeal);
 
                 var numberOfCardsDealt = 0;
-                var activePlayersCount = players.filter(player => {
-                    return !player.isOut;
-                }).length;
                 var totalCardsNeeded = activePlayersCount * 2;
                 for (var i = currentTurnIndex; i < currentTurnIndex + players.length; i++) {
                     var currentIndex = i >= players.length ? i - players.length : i;
