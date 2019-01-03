@@ -701,10 +701,8 @@
             }
 
             var currentTurnIndex;
-            var numberOfTurnsPlayed = 0;
             var currentBet = 0;
             var currentPotAmount = 0;
-            var isBigBlindRaised = false;
             var beginDeal = function(onDealComplete) {
                 var activePlayersCount = players.filter(player => {
                     return !player.isOut;
@@ -715,11 +713,6 @@
                 }
                 
                 setMessageText('Dealing...');
-                isBigBlindRaised = false;
-                numberOfTurnsPlayed = 0;
-                playerCountAtStartOfRound = players.filter(player => {
-                    return player.numberOfChips > 0;
-                }).length;
 
                 incrementBlinds();
                 currentBet = bigBlindAmount;
@@ -1374,9 +1367,6 @@
                     player.isPlayed = false;
                 });
 
-                playerCountAtStartOfRound = players.filter(player => {
-                    return player.numberOfChips > 0;
-                });
                 startNextTurn();
             }
             
@@ -1441,12 +1431,10 @@
             var numberOfRounds = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
-                numberOfTurnsPlayed++;
                 var onlyPlayerIn = getOnlyPlayerIn();
                 var isRoundComplete = onlyPlayerIn || isAllPlayersPlayed(); 
 
                 if (isRoundComplete) {
-                    numberOfTurnsPlayed = 0;
                     if (onlyPlayerIn || roundNumber === numberOfRounds) {
                         if (onlyPlayerIn) {
                             setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
