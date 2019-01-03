@@ -704,6 +704,12 @@
             var currentBet = 0;
             var currentPotAmount = 0;
             var beginDeal = function(onDealComplete) {
+                players.forEach(player => {
+                    player.currentBet = 0;
+                    player.isPlayed = false;
+                    player.isOut = player.numberOfChips <= 0;
+                });
+                
                 var activePlayersCount = players.filter(player => {
                     return !player.isOut;
                 }).length;
@@ -717,11 +723,6 @@
                 incrementBlinds();
                 currentBet = bigBlindAmount;
                 currentPotAmount = bigBlindAmount + littleBlindAmount;
-                players.forEach(player => {
-                    player.currentBet = 0;
-                    player.isPlayed = false;
-                    player.isOut = player.numberOfChips <= 0;
-                });
                 deductBlindsFromPlayers();
 
                 currentDeck = shuffleCards();
