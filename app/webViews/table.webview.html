@@ -1,10 +1,12 @@
 <html>
     <head></head>
     <body style="background-color: #dedede">
-        <div id="message-box">testtesttest</div>
-        <button id="button-call-check" class="game-button">none</button>
-        <button id="button-raise-bet" class="game-button">none</button>
-        <button id="button-fold" class="game-button">Fold</button>
+        <div id="message-box"></div>
+        <div style="text-align: center">
+            <button id="button-call-check" class="game-button">none</button>
+            <button id="button-raise-bet" class="game-button">none</button>
+            <button id="button-fold" class="game-button">Fold</button>
+        </div>
         <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
             <span>Enter amount:&nbsp;</span>
@@ -19,9 +21,13 @@
             .game-button {
                 position: absolute;
                 z-index: 998;
-                padding: 0.25em 1em;
+                padding: 0.35em 1em;
                 font-size: 1.25em;
                 display: none;
+                width: 7em;
+                color: white;
+                font-weight: bold;
+                border: none;
             }
 
             #modal-overlay {
@@ -42,6 +48,9 @@
                 display: none;
                 background-color: #444;
             }
+            #bet-amount-dialog span {
+                color: white;
+            }
             #bet-button-holder {
                 text-align: center;
             }
@@ -51,6 +60,7 @@
                 margin-top: 0.5em;
                 font-weight: bold;
                 font-size: 1.25em;
+                padding: 0.25em;
             }
             #bet-button {
                 background-color: #117711;
@@ -60,8 +70,22 @@
                 background-color: #991111;
             }
 
+            #button-call-check {
+                background-color: #0808FF;
+            }
+            #button-raise-bet {
+                background-color: #117711;
+            }
+            #button-fold {
+                background-color: #991111;
+            }
+
             #message-box {
                 text-align: center;
+                margin-bottom: 1em;
+                padding: 0.25em 0;
+                border: 1px solid #888;
+                min-height: 1em;
             }
         </style>
 
@@ -167,56 +191,56 @@
                 return colors[playerNumber - 1];
             }
 
-            var getPlayerDeckLocation = function(playerIndex, tableStart, tableWidth, tableHeight) {
+            var getPlayerDeckLocation = function(playerIndex, tableX, tableY, tableWidth, tableHeight) {
                 var deckLocation = {};
 
                 switch (playerIndex) {
                     case 0: 
                         deckLocation = {
-                            x: tableStart + 20,
-                            y: tableStart + (tableHeight * 0.5) + 10
+                            x: tableX + 20,
+                            y: tableY + (tableHeight * 0.5) + 10
                         };
                         break;
                     case 1: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.25),
-                            y: tableStart + 20
+                            x: tableX + (tableWidth * 0.25),
+                            y: tableY + 20
                         };
                         break;
                     case 2: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.5),
-                            y: tableStart + 20
+                            x: tableX + (tableWidth * 0.5),
+                            y: tableY + 20
                         };
                         break;
                     case 3: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.75),
-                            y: tableStart + 20
+                            x: tableX + (tableWidth * 0.75),
+                            y: tableY + 20
                         };
                         break;
                     case 4: 
                         deckLocation = {
-                            x: tableStart + tableWidth - 20,
-                            y: tableStart + (tableHeight * 0.5) - 15
+                            x: tableX + tableWidth - 20,
+                            y: tableY + (tableHeight * 0.5) - 15
                         };
                         break;
                     case 5: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.75),
-                            y: tableStart + tableHeight - 28
+                            x: tableX + (tableWidth * 0.75),
+                            y: tableY + tableHeight - 28
                         };
                         break;
                     case 6: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.5),
-                            y: tableStart + tableHeight - 28
+                            x: tableX + (tableWidth * 0.5),
+                            y: tableY + tableHeight - 28
                         };
                         break;
                     case 7: 
                         deckLocation = {
-                            x: tableStart + (tableWidth * 0.25),
-                            y: tableStart + tableHeight - 28
+                            x: tableX + (tableWidth * 0.25),
+                            y: tableY + tableHeight - 28
                         };
                         break;
                 }
@@ -252,7 +276,7 @@
 
             var loadDialogs = function(canvasX, canvasY, canvasWidth, canvasHeight) {
                 var betDialogLeft = canvasX + parseInt(canvasWidth * 0.05);
-                var betDialogTop = canvasY + parseInt(canvasHeight * 0.4);
+                var betDialogTop = canvasY + parseInt(canvasHeight * 0.25);
                 var betDialog = document.getElementById('bet-amount-dialog');
                 betDialog.style.left = betDialogLeft;
                 betDialog.style.top = betDialogTop;
@@ -377,20 +401,18 @@
                 }
             }
 
-            var drawPlayers = function(ctx, players, tableStart, tableWidth, tableHeight) {
+            var drawPlayers = function(ctx, players, tableX, tableY, tableWidth, tableHeight) {
                 var avatarRadius = parseInt(tableWidth / 11);
 
-                var avatarX_left = parseInt(tableStart * 0.5);
-                var avatarX_center_left = parseInt(tableStart + (0.2 * tableWidth));
-                var avatarX_center = parseInt(tableStart + (0.5 * tableWidth));
-                var avatarX_center_right = parseInt(tableStart + (0.8 * tableWidth));
-                var avatarX_right = parseInt(tableStart + tableWidth + (0.5 * tableStart));
+                var avatarX_left = parseInt(tableX * 0.5);
+                var avatarX_center_left = parseInt(tableX + (0.2 * tableWidth));
+                var avatarX_center = parseInt(tableX + (0.5 * tableWidth));
+                var avatarX_center_right = parseInt(tableX + (0.8 * tableWidth));
+                var avatarX_right = parseInt(tableX + (tableWidth * 1.15));
 
-                var avatarY_top = parseInt(tableStart * 0.33);
-                var avatarY_center = parseInt(tableStart + (0.5 * tableHeight));
-                var avatarY_bottom = parseInt(tableStart + tableHeight + (0.4 * tableStart));
-
-                
+                var avatarY_top = parseInt(tableY * 0.33);
+                var avatarY_center = parseInt(tableY + (0.5 * tableHeight));
+                var avatarY_bottom = parseInt(tableY + tableHeight + (0.4 * tableY));
 
                 ctx.font = "12px Arial";
 
@@ -442,16 +464,16 @@
                 }
             };
 
-            var drawBlinds = function(ctx, tableStart, tableWidth, tableHeight) {
+            var drawBlinds = function(ctx, tableX, tableY, tableWidth, tableHeight) {
                 var blindLocations = [
-                    { x: tableStart + 10, y: tableStart + (tableHeight / 2) },
-                    { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
-                    { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + 10 },
-                    { x: tableStart + (5 * tableWidth / 6), y: tableStart + 10 },
-                    { x: tableStart + tableWidth - 10, y: tableStart + (tableHeight / 2) },
-                    { x: tableStart + (5 * tableWidth / 6), y: tableStart + tableHeight - 10 },
-                    { x: tableStart + (2 * tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 },
-                    { x: tableStart + (tableWidth / 3) - (tableWidth / 6), y: tableStart + tableHeight - 10 }
+                    { x: tableX + 10, y: tableY + (tableHeight / 2) },
+                    { x: tableX + (tableWidth / 3) - (tableWidth / 6), y: tableY + 10 },
+                    { x: tableX + (2 * tableWidth / 3) - (tableWidth / 6), y: tableY + 10 },
+                    { x: tableX + (5 * tableWidth / 6), y: tableY + 10 },
+                    { x: tableX + tableWidth - 10, y: tableY + (tableHeight / 2) },
+                    { x: tableX + (5 * tableWidth / 6), y: tableY + tableHeight - 10 },
+                    { x: tableX + (2 * tableWidth / 3) - (tableWidth / 6), y: tableY + tableHeight - 10 },
+                    { x: tableX + (tableWidth / 3) - (tableWidth / 6), y: tableY + tableHeight - 10 }
                 ];
 
                 circle(ctx, blindLocations[bigBlindIndex].x, blindLocations[bigBlindIndex].y, 5, 'red', 'red', 1);
@@ -459,12 +481,12 @@
                 circle(ctx, blindLocations[littleBlindIndex].x, blindLocations[littleBlindIndex].y, 5, 'red', 'red', 1);
             }
 
-            var drawPlayerHands = function(ctx, tableStart, tableWidth, tableHeight) {
+            var drawPlayerHands = function(ctx, tableX, tableY, tableWidth, tableHeight) {
                 var index = 0;
                 ctx.fillStyle = 'grey';
 
                 players.forEach(player => {
-                    var playerDeckLocation = getPlayerDeckLocation(index, tableStart, tableWidth, tableHeight);
+                    var playerDeckLocation = getPlayerDeckLocation(index, tableX, tableY, tableWidth, tableHeight);
                     if (player.card1) {
                         ctx.fillRect(playerDeckLocation.x - 6, playerDeckLocation.y, 5, 8);
                     }
@@ -497,11 +519,11 @@
                 ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 8, y + 17, width * 0.7, height * 0.5);
             }
 
-            var drawCardsOnTable = function(ctx, tableStart, tableWidth, tableHeight) {
+            var drawCardsOnTable = function(ctx, tableX, tableY, tableWidth, tableHeight) {
                 if (cardsOnTable.length > 0) {
                     ctx.lineWidth = 2;
-                    var x = parseInt(tableStart + (0.16 * tableWidth));
-                    var y = parseInt(tableStart + (0.28 * tableHeight));
+                    var x = parseInt(tableX + (0.16 * tableWidth));
+                    var y = parseInt(tableY + (0.28 * tableHeight));
                     var width = parseInt(tableWidth * 0.12);
                     var height = parseInt(width * 1.33);
 
@@ -512,11 +534,11 @@
                 }
             }
 
-            var drawPot = function(ctx, potAmount, tableStart, tableWidth, tableHeight) {
+            var drawPot = function(ctx, potAmount, tableX, tableY, tableWidth, tableHeight) {
                 var offsetPerDigit = 2;
                 var numberOfDigits = potAmount.toString().length;
-                var x = tableStart + (0.4 * tableWidth) - (offsetPerDigit * numberOfDigits);
-                var y = tableStart + (0.65 * tableHeight);
+                var x = tableX + (0.4 * tableWidth) - (offsetPerDigit * numberOfDigits);
+                var y = tableY + (0.65 * tableHeight);
 
                 ctx.font = '16px Arial';
                 ctx.fillStyle = 'white';
@@ -678,6 +700,7 @@
             var currentPotAmount = 0;
             var isBigBlindRaised = false;
             var beginDeal = function(onDealComplete) {
+                setMessageText('Dealing...');
                 isBigBlindRaised = false;
                 numberOfTurnsPlayed = 0;
                 playerCountAtStartOfRound = players.filter(player => {
@@ -689,6 +712,8 @@
                 currentPotAmount = bigBlindAmount + littleBlindAmount;
                 players.forEach(player => {
                     player.currentBet = 0;
+                    player.isPlayed = false;
+                    player.isOut = player.numberOfChips <= 0;
                 });
                 deductBlindsFromPlayers();
 
@@ -711,23 +736,25 @@
                     player.card1 = null;
                     player.card2 = null;
 
-                    setTimeout(function(nextPlayer) {
-                        var nextCard = drawCardFromDeck();
-                        nextPlayer.card1 = nextCard;
-                        numberOfCardsDealt++;
-                    }, cardTimeout, player);
+                    if (!player.isOut) {
+                        setTimeout(function(nextPlayer) {
+                            var nextCard = drawCardFromDeck();
+                            nextPlayer.card1 = nextCard;
+                            numberOfCardsDealt++;
+                        }, cardTimeout, player);
 
-                    setTimeout(function(nextPlayer) {
-                        var nextCard = drawCardFromDeck();
-                        nextPlayer.card2 = nextCard;
-                        numberOfCardsDealt++;
+                        setTimeout(function(nextPlayer) {
+                            var nextCard = drawCardFromDeck();
+                            nextPlayer.card2 = nextCard;
+                            numberOfCardsDealt++;
 
-                        if (numberOfCardsDealt === totalCardsNeeded) {
-                            onDealComplete();
-                        }
-                    }, cardTimeout + roundOfCardsTime, player);
+                            if (numberOfCardsDealt === totalCardsNeeded) {
+                                onDealComplete();
+                            }
+                        }, cardTimeout + roundOfCardsTime, player);
 
-                    cardTimeout += cardDealInterval;
+                        cardTimeout += cardDealInterval;
+                    }
                 }
             }
 
@@ -1192,6 +1219,12 @@
                 }
             }
 
+            var setIsPlayedFalseExceptCurrentPlayer = function() {
+                for (var i = 0; i < players.length; i++) {
+                    players[i].isPlayed = (currentTurnIndex === i);
+                }
+            }
+
             /** actionType: 'check', 'call', 'bet', 'raise', 'fold'
             /* actionValue (any): bet/raise (number)
             */
@@ -1203,12 +1236,15 @@
 
                 switch (actionType) {
                     case 'check': 
+                        activePlayer.isPlayed = true;
                         break;
                     case 'call': 
+                        activePlayer.isPlayed = true;
                         var amountToCall = currentBet - activePlayer.currentBet;
                         actionDisplayAmount = amountToCall;
                         if (amountToCall >= activePlayer.numberOfChips) {
                             isAllIn = true;
+                            activePlayer.isOut = true;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1218,9 +1254,11 @@
                         activePlayer.currentBet = currentBet;
                         break;
                     case 'bet': 
+                        setIsPlayedFalseExceptCurrentPlayer();
                         actionDisplayAmount = actionAmount;
                         if (actionAmount >= activePlayer.numberOfChips) {
                             isAllIn = true;
+                            activePlayer.isOut = true;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1231,10 +1269,12 @@
                         currentBet = actionAmount;
                         break;
                     case 'raise': 
+                        setIsPlayedFalseExceptCurrentPlayer();
                         actionDisplayAmount = actionAmount;
                         var totalBet = (currentBet - activePlayer.currentBet) + actionAmount;
                         if (totalBet >= activePlayer.numberOfChips) {
                             isAllIn = true;
+                            activePlayer.isOut = true;
                             activePlayer.numberOfChips = 0;
                         }
                         else {
@@ -1245,6 +1285,7 @@
                         activePlayer.currentBet = currentBet;
                         break;
                     case 'fold':
+                        activePlayer.isOut = true;
                         activePlayer.card1 = null;
                         activePlayer.card2 = null;
                         break;
@@ -1261,6 +1302,11 @@
                     actionText = actionType + 's';
                 }
                 setMessageText('Player ' + players[currentTurnIndex].name + ' ' + actionText + '.');
+
+                if (currentPlayerIndex === currentTurnIndex) {
+                    hideButtons();
+                    stopUserOutlineAnimation();
+                }
 
                 endTurn();
             }
@@ -1287,28 +1333,9 @@
                 }
                 // todo: else if human player then wait for their turn. 
                 //      then, use events to update chip counts and actions for other players (add chips, bet/raise)
-                else { // todo: get rid of this (move hideButtons to end of user turn? and remove beginAiTurn because server will handle AI and player sockets)
-                    hideButtons();
-                    stopUserOutlineAnimation();
-                    beginAiTurn(); // todo: implement this
+                else { // todo: get rid of this (remove beginAiTurn because server will handle AI and player sockets)
+                    beginAiTurn();
                 }
-            }
-
-            var areAllBetsEqual = function() {
-                var areEqual = true;
-                var equalBet;
-                for (var i = 0; i < players.length && areEqual; i++) {
-                    if (players[i].card1 && players[i].card2) {
-                        if (equalBet !== 0 && !equalBet) {
-                            equalBet = players[i].currentBet;
-                        }
-                        else {
-                            areEqual = players[i].currentBet === equalBet;
-                        }
-                    }
-                }
-
-                return areEqual;
             }
 
             var beginRound = function() {
@@ -1325,6 +1352,7 @@
                 currentBet = 0;
                 players.forEach(player => {
                     player.currentBet = 0;
+                    player.isPlayed = false;
                 });
 
                 playerCountAtStartOfRound = players.filter(player => {
@@ -1344,7 +1372,7 @@
                     else {
                         cardsDisplay += ', ' + card.rank;
                     }
-                })
+                });
 
                 switch (score) {
                     case ROYAL_FLUSH_RANK: 
@@ -1382,9 +1410,13 @@
                 return displayName;
             }
 
-            var playerCountAtStartOfRound = 0;
             var isAllPlayersPlayed = function() {
-                return numberOfTurnsPlayed >= playerCountAtStartOfRound;
+                var isAllPlayed = true;
+                for (var i = 0; i < players.length && isAllPlayed; i++) {
+                    isAllPlayed = isAllPlayed && (players[i].isPlayed || players[i].isOut);
+                }
+
+                return isAllPlayed;
             }
 
             var numberOfRounds = 4; // pre-flop, flop, turn, river
@@ -1392,7 +1424,7 @@
             var endTurn = function() {
                 numberOfTurnsPlayed++;
                 var onlyPlayerIn = getOnlyPlayerIn();
-                var isRoundComplete = onlyPlayerIn || (isAllPlayersPlayed() && areAllBetsEqual());
+                var isRoundComplete = onlyPlayerIn || isAllPlayersPlayed(); 
 
                 if (isRoundComplete) {
                     numberOfTurnsPlayed = 0;
@@ -1414,18 +1446,17 @@
                                 // todo: boot player, or let player add chips until their turn? 
                                 // also fix timing of this message
                             }
-                        })
-
-                        cardsOnTable = [];
-                        roundNumber = 1;
+                        });
                         
                         // todo: maybe make animation of pot being rewarded or some shit
                         setTimeout(() => {
-                            setMessageText('Dealing...');
+                            cardsOnTable = [];
+                            roundNumber = 1;
+                            
                             beginDeal(function() {
                                 startNextTurn();
                             });
-                        }, 3000);
+                        }, 5000);
                     }
                     else {
                         roundNumber++;
@@ -1773,8 +1804,9 @@
                         playerName += ', ' + name;
                     }
                 });
+                
                 var hand = handsByPlayerName[players[winningAmountsByPlayerIndex[0].playerIndex].name];
-                var handName = getHandDisplayName(highestRank, hand);
+                var handName = getHandDisplayName(highestRank, hand.hand);
                 setMessageText(playerWord + ' ' + playerName + ' ' + winWord + ' with ' + handName);
 
                 return winningAmountsByPlayerIndex;
@@ -1891,25 +1923,26 @@
                 var ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                var tableStart = parseInt(canvas.width * 0.2);
+                var tableX = parseInt(canvas.width * 0.15);
+                var tableY = parseInt(canvas.height * 0.15);
                 var tableWidth = parseInt(canvas.width * 0.65);
                 var tableHeight = parseInt(canvas.height * 0.25);
 
-                drawTable(ctx, tableStart, tableStart, tableWidth, tableHeight);
-                drawPlayers(ctx, getPlayers(), tableStart, tableWidth, tableHeight);
+                drawTable(ctx, tableX, tableY, tableWidth, tableHeight);
+                drawPlayers(ctx, getPlayers(), tableX, tableY, tableWidth, tableHeight);
 
                 if (currentPlayerIndex === 0 || currentPlayerIndex) {
                     drawUserHand(ctx, canvas);
                 }
 
                 if (areBlindsSet()) {
-                    drawBlinds(ctx, tableStart, tableWidth, tableHeight);
+                    drawBlinds(ctx, tableX, tableY, tableWidth, tableHeight);
                 }
-                drawPlayerHands(ctx, tableStart, tableWidth, tableHeight);
+                drawPlayerHands(ctx, tableX, tableY, tableWidth, tableHeight);
 
-                drawCardsOnTable(ctx, tableStart, tableWidth, tableHeight);
+                drawCardsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
                 var potAmount = currentPotAmount || 0;
-                drawPot(ctx, potAmount, tableStart, tableWidth, tableHeight);
+                drawPot(ctx, potAmount, tableX, tableY, tableWidth, tableHeight);
             }
         </script>
 
