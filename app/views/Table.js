@@ -18,31 +18,31 @@ export class Table extends React.Component {
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Godric Gryffindor',
+                            name: 'Gryffindor',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Rowena Ravenclaw',
+                            name: 'Ravenclaw',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Helga Hufflepuff',
+                            name: 'Hufflepuff',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Salazar Slytherin',
+                            name: 'Slytherin',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Michael Scott',
+                            name: 'MichaelScott',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Dwight K. Schrute',
+                            name: 'Dwight K.',
                             numberOfChips: 2000
                         },
                         {
-                            name: 'Creed Bratton',
+                            name: 'CreedBratton',
                             numberOfChips: 2000
                         }
                     ]
