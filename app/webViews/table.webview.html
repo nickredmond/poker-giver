@@ -1,7 +1,13 @@
 <html>
     <head></head>
     <body style="background-color: #dedede">
-        <div id="message-box"></div>
+        <div style="text-align: center">
+            <div id="message-container" onclick="messageBoxDropdownClick()">
+                <div id="message-box" class="message-box-container"></div>
+                <div id="message-box-dropdown-icon" class="arrow-down"></div>
+            </div>
+            <div id="message-list-box"></div>
+        </div>
         <div style="text-align: center">
             <button id="button-call-check" class="game-button">none</button>
             <button id="button-raise-bet" class="game-button">none</button>
@@ -18,6 +24,10 @@
         </div>
         <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         <style>
+            #tableCanvas {
+                margin-top: 0.5em;
+            }
+
             .game-button {
                 position: absolute;
                 z-index: 998;
@@ -87,20 +97,107 @@
                 font-size: 1.2em;
             }
 
-            #message-box {
+            .message-box-container {
                 text-align: center;
-                margin-bottom: 1em;
+                margin-bottom: 0;
                 padding: 0.25em 0;
                 border: 1px solid #888;
                 min-height: 1em;
                 font-size: 1.25em;
+                background-color: #efefef;
+                width: 80%;
+            }
+            .message-box-item {
+                padding: 0.25em 0 0.25em 0.25em;
+                border-bottom: 1px solid #888;
+            }
+
+            .arrow-down {
+                width: 0; 
+                height: 0; 
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                
+                border-top: 20px solid #333;
+            }
+            .arrow-up {
+                width: 0; 
+                height: 0; 
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                
+                border-bottom: 20px solid #333;
+            }
+
+            #message-container > div {
+                display: inline-block;
+            }
+
+            #message-box-dropdown-icon {
+                position: relative;
+                top: 0.25em;
+            }
+
+            #message-list-box {
+                position: absolute;
+                left: 5%;
+                z-index: 999;
+                background-color: #eee;
+                width: 80%;
             }
         </style>
 
         <!-- Utility drawing functions, e.g. rounded rect, circle, etc -->
         <script>
+            var maxMessageCount = 20;
+            var lastMessages = [];
+            var isMessageListDisplayed = false;
             var setMessageText = function(text) {
-                document.getElementById('message-box').innerHTML = text;
+                lastMessages.push(text);
+                if (lastMessages.length > maxMessageCount) {
+                    lastMessages = lastMessages.slice(1, maxMessageCount + 1);
+                }
+
+                if (isMessageListDisplayed) {
+                    var messageListBox = document.getElementById('message-list-box');
+                    messageListBox.innerHTML = '';
+                    appendMessagesToView(messageListBox);
+                }
+                else {
+                    document.getElementById('message-box').innerHTML = text;
+                }
+            }
+
+            var messageBoxDropdownClick = function() {
+                isMessageListDisplayed = !isMessageListDisplayed;
+                var messageListBox = document.getElementById('message-list-box');
+
+                var dropdownIcon = document.getElementById('message-box-dropdown-icon');
+                dropdownIcon.classList.remove('arrow-up', 'arrow-down');
+                var updatedClass = isMessageListDisplayed ? 'arrow-up' : 'arrow-down';
+                dropdownIcon.classList.add(updatedClass);
+
+                if (isMessageListDisplayed) {
+                    appendMessagesToView(messageListBox);
+                }
+                else {
+                    messageListBox.innerHTML = '';
+                }
+
+                messageListBox.style.display = isMessageListDisplayed ? 'inline-block' : 'none';
+            }
+            var appendMessagesToView = function(messageListBox) {
+                for (var i = lastMessages.length - 1; i >= 0; i--) {
+                    if (i === lastMessages.length - 1) {
+                        document.getElementById('message-box').innerHTML = lastMessages[i];
+                    }
+                    else {
+                        var messageElement = document.createElement('div');
+                        messageElement.innerHTML = lastMessages[i];
+                        messageElement.classList.add('message-box-item');
+                        messageListBox.appendChild(messageElement);
+                    }
+                }
             }
 
             /** https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas */
