@@ -549,86 +549,74 @@
 
         <!-- AI logic functions -->
         <script>
-            var numberOfAggressions = 0;
             var beginAiTurn = function() {
                 var turnLengthMillis = (Math.random() * 2500) + 300;
                 setTimeout(() => {
-                    var player = players[currentTurnIndex];
-                    var hand = cardsOnTable.concat([player.card1, player.card2]);
-                    var bettingOdds = getOdds(hand);
-                    var pick = Math.random();
-                    var agressionOffset = player.currentBet === currentBet ? 0.1 : 0.2; // minimize raising
-                    var isAggressive = bettingOdds - (0.1 * numberOfAggressions) - agressionOffset >= pick;
+                    try {
+                        var player = players[currentTurnIndex];
+                        var cards = cardsOnTable.concat([player.card1, player.card2]);
 
-                    if (isAggressive) {
-                        numberOfAggressions++;
-                        var ratioOfFunds = Math.random();
-                        var betAmount = Math.min(
-                            parseInt(player.numberOfChips * 0.001), 
-                            parseInt(ratioOfFunds * player.numberOfChips)
-                        );
-                        var raiseBetAction = player.currentBet === currentBet ? 'bet' : 'raise';
-                        onNextUserAction(raiseBetAction, betAmount);
-                    }
-                    else {
-                        var chanceOfFold = 1 - bettingOdds + 0.1;
-                        var isFold = Math.random() <= chanceOfFold;
+                        var maxBetAmount = 1000;
+                        var oddsOfBetting = 1;
+                        var oddsOfFolding = 0;
+                        var isHandFound = false;
+
+                        var handTiers = [
+                            [getRoyalFlush, getStraightFlush, getFourofaKind],
+                            [getFullHouse, getFlush, getStraight],
+                            [getThreeofaKind, getTwoPair, getPair],
+                        ];
+
+                        for (var i = 0; i < handTiers.length && !isHandFound; i++) {
+                            var handChecks = handTiers[i];
+                            for (var j = 0; j < handTiers[i].length && !isHandFound; j++) {
+                                isHandFound = handChecks[j](cards) !== null;
+
+                                if (!isHandFound) {
+                                    maxBetAmount -= 55;
+                                    oddsOfBetting -= 0.01;
+                                    oddsOfFolding += 0.01;
+                                }
+                            }
+                            if (!isHandFound) {
+                                maxBetAmount -= 105;
+                                oddsOfBetting -= 0.22;
+                                oddsOfFolding += 0.08;
+                            }
+                        }
+
+                        if (cardsOnTable.length > 3) {
+                            maxBetAmount -= 75 * (cardsOnTable - 3);
+                            oddsOfBetting -= 0.08 * (cardsOnTable - 3);
+                            oddsOfFolding += (maxBetAmount > 500) ? 0 : 0.05;
+                        }
+
+                        var isFold = false;
+                        if (player.currentBet < currentBet) {
+                            isFold = oddsOfFolding > Math.random();
+                        }
+
                         if (isFold) {
                             onNextUserAction('fold');
                         }
                         else {
-                            var callCheckAction = player.currentBet === currentBet ? 'check' : 'call';
-                            onNextUserAction(callCheckAction);
-                        }
-                    }
-                }, turnLengthMillis);
-            }
-
-            // return number between [0, 1] that represents odds in match for AI
-            var getOdds = function(cards) {
-                var odds = 0.5;
-
-                if (cards.length === 2) {
-                    if (getPair(cards)) {
-                        odds += 0.3;
-                    }
-                    else {
-                        cards.sort(generateCardSortingFunction(true));
-                        var highCardScore = getCardScore(cards[0].rank);
-                        if (highCardScore > 10) {
-                            odds += 0.2;
-                        }
-                        else if (highCardScore < 7) {
-                            odds -= 0.2;
-                        }
-                    }
-                }
-                else {
-                    if (getRoyalFlush(cards) || getStraightFlush(cards) || 
-                        getFourofaKind(cards) || getFullHouse(cards)) {
-
-                        odds += 0.5;
-                    }
-                    else {
-
-                        cards.sort(generateCardSortingFunction(true));
-                        var highCardScore = getCardScore(cards[0].rank);
-
-                        if (getFlush(cards) || getStraight(cards) || getThreeofaKind(cards)) {
-                            if (highCardScore > 10) {
-                                odds += 0.4;
+                            var isAggressive = oddsOfBetting > Math.random();
+                            if (isAggressive) {
+                                var betAmount = Math.random() * maxBetAmount;
+                                var action = (currentBet === 0) ? 'bet' : 'raise';
+                                onNextUserAction(action, betAmount);
                             }
                             else {
-                                odds += 0.25;
+                                var action = (currentBet === 0) ? 'check' : 'call';
+                                onNextUserAction(action);
                             }
                         }
-                        else if (highCardScore < 7) {
-                            odds -= 0.2;
-                        }
+                    } catch (error) {
+                        // todo: handle this more gracefully... or just remove w/ removal of AI?
+                        setMessageText("error (deal).");
+                        alert("error: [ name:" + error.name + ", message:" + error.message + ", stack: " + error.stack + " ]");
                     }
-                }
-
-                return odds;
+                }, turnLengthMillis);
             }
         </script>
 
@@ -1371,9 +1359,6 @@
                     endTurn();
                 }
                 else {
-                    // todo: remove when removing/refactoring AI
-                    numberOfAggressions = 0;
-
                     currentTurnIndex = bigBlindIndex + 1;
                     incrementTurnIndex();
 
