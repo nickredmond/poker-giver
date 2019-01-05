@@ -15,35 +15,35 @@ export class Table extends React.Component {
                     players: [
                         {
                             name: 'Big Nick',
-                            numberOfChips: 17206
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'Long John 23',
-                            numberOfChips: 5002
+                            name: 'Godric Gryffindor',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'Kat Zeta Jo',
-                            numberOfChips: 99000
+                            name: 'Rowena Ravenclaw',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'xlitl9078',
-                            numberOfChips: 12154
+                            name: 'Helga Hufflepuff',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'Every Time !',
-                            numberOfChips: 7798
+                            name: 'Salazar Slytherin',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'legolas 8989',
-                            numberOfChips: 4200
+                            name: 'Michael Scott',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'waterchess',
-                            numberOfChips: 998
+                            name: 'Dwight K. Schrute',
+                            numberOfChips: 2000
                         },
                         {
-                            name: 'once upon me',
-                            numberOfChips: 23412
+                            name: 'Creed Bratton',
+                            numberOfChips: 2000
                         }
                     ]
                 }
