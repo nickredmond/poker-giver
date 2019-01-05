@@ -9,9 +9,11 @@
             <div id="message-list-box"></div>
         </div>
         <div style="text-align: center">
-            <button id="button-call-check" class="game-button">none</button>
-            <button id="button-raise-bet" class="game-button">none</button>
-            <button id="button-fold" class="game-button">Fold</button>
+            <button id="button-call-check" class="game-button during-hand-button">none</button>
+            <button id="button-raise-bet" class="game-button during-hand-button">none</button>
+            <button id="button-fold" class="game-button during-hand-button">Fold</button>
+            <button id="button-show-cards" class="game-button after-hand-button">Show Cards</button>
+            <button id="button-muck" class="game-button after-hand-button">Muck</button>
         </div>
         <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
@@ -34,10 +36,16 @@
                 padding: 0.35em 1em;
                 font-size: 1.25em;
                 display: none;
-                width: 7em;
                 color: white;
                 font-weight: bold;
                 border: none;
+            }
+            .during-hand-button {
+                width: 7em;
+            }
+            .after-hand-button {
+                width: 7.5em;
+                background-color: #0808FF;
             }
 
             #modal-overlay {
@@ -377,6 +385,14 @@
                 var foldButton = document.getElementById('button-fold');
                 foldButton.style.top = canvasY + parseInt(canvasHeight * 0.8);
                 foldButton.style.left = buttonsLeft;
+
+                var showCardsButton = document.getElementById('button-show-cards');
+                showCardsButton.style.top = canvasY + parseInt(canvasHeight * 0.6);
+                showCardsButton.style.left = buttonsLeft;
+
+                var muckButton = document.getElementById('button-muck');
+                muckButton.style.top = canvasY + parseInt(canvasHeight * 0.7);
+                muckButton.style.left = buttonsLeft;
             }
 
             var loadDialogs = function(canvasX, canvasY, canvasWidth, canvasHeight) {
@@ -649,6 +665,41 @@
                 ctx.fillStyle = 'white';
                 ctx.fillText('pot: ' + potAmount, x, y);
             }
+
+            var drawRevealedHandsOnTable = function(ctx, tableX, tableY, tableWidth, tableHeight) {
+                var index = 0;
+
+                players.forEach(player => {
+                    if (player.isShowingHand && player.card1) {
+                        var playerDeckLocation = getPlayerDeckLocation(index, tableX, tableY, tableWidth, tableHeight);
+                        ctx.lineWidth = 1;
+                        var width = parseInt(tableWidth * 0.08);
+                        var height = parseInt(width * 1.33);
+                        drawRevealedCard(ctx, player.card1.suit, player.card1.rank, playerDeckLocation.x - width - 1, playerDeckLocation.y, width, height);
+                        drawRevealedCard(ctx, player.card2.suit, player.card2.rank, playerDeckLocation.x + 1, playerDeckLocation.y, width, height);
+                    }
+
+                    index++;
+                });
+            }
+            var drawRevealedCard = function(ctx, suit, rank, x, y, width, height) {
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+
+                roundRect(ctx, x, y, width, height, 5, true, false);
+                roundRect(ctx, x, y, width, height, 5, false, true);
+
+                ctx.fillStyle = 'black';
+                ctx.font = '16px Arial';
+
+                if (rank.length > 1) {
+                    x -= 5;
+                }
+
+                ctx.fillText(rank, x + 5, y + 15);
+                var source = suitSpriteLocations[suit];
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 7, y + 15, width * 0.6, height * 0.4);
+            }
         </script>
 
         <!-- AI logic functions -->
@@ -799,6 +850,7 @@
             var beginDeal = function(onDealComplete) {
                 try {
                     players.forEach(player => {
+                        player.isShowingHand = false;
                         player.currentBet = 0;
                         player.isPlayed = false;
                         player.isOut = player.numberOfChips <= 0;
@@ -1321,14 +1373,28 @@
                 document.getElementById('button-call-check').onclick = function() {
                     var actionType = isCheck() ? 'check' : 'call';
                     onNextUserAction(actionType); 
+                    // todo: fire event to server
                 }
 
                 document.getElementById('button-raise-bet').onclick = function() {
                     showBetAmountDialog();
+                    // todo: fire event to server
                 }
 
                 document.getElementById('button-fold').onclick = function() {
                     onNextUserAction('fold');
+                    // todo: fire event to server
+                }
+
+                document.getElementById('button-show-cards').onclick = function() {
+                    players[currentPlayerIndex].isShowingHand = true;
+                    hideLostHandButtons();
+                    // todo: fire event to server that user has shown cards
+                }
+
+                document.getElementById('button-muck').onclick = function() {
+                    hideLostHandButtons();
+                    // todo: fire event to server that user has mucked
                 }
             }
 
@@ -1555,6 +1621,8 @@
 
                     if (isRoundComplete) {
                         if (onlyPlayerIn || cardsOnTable.length === 5) {
+                            var winningPlayers = [];
+
                             if (onlyPlayerIn) {
                                 setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
                                 onlyPlayerIn.numberOfChips += currentPotAmount;
@@ -1563,6 +1631,7 @@
                                 var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
                                 winningPlayerRewards.forEach(reward => {
                                     players[reward.playerIndex].numberOfChips += reward.winningAmount;
+                                    winningPlayers.push(players[reward.playerIndex]);
                                 });
                             }
 
@@ -1573,9 +1642,14 @@
                                     // also fix timing of this message
                                 }
                             });
+
+                            if (winningPlayers.length > 0) {
+                                handleShowCardsOrMuck(winningPlayers);
+                            }
                             
                             // todo: maybe make animation of pot being rewarded or some shit
                             setTimeout(() => {
+                                hideLostHandButtons();
                                 cardsOnTable = [];
                                 roundNumber = 1;
                                 
@@ -1615,6 +1689,30 @@
                     setMessageText("error (end turn).");
                     alert("error: [ name:" + error.name + ", message:" + error.message + ", stack: " + error.stack + " ]");
                 }
+            }
+
+            var handleShowCardsOrMuck = function(winningPlayers) {
+                var isCurrentPlayerWinner = false;
+                winningPlayers.forEach(player => {
+                    if (players[currentPlayerIndex].name === player.name) {
+                        isCurrentPlayerWinner = true;
+                    }
+                    player.isShowingHand = true;
+                });
+
+                if (!isCurrentPlayerWinner) {
+                    showLostHandButtons();
+                }
+            }
+
+            var showLostHandButtons = function() {
+                document.getElementById('button-show-cards').style.display = 'block';
+                document.getElementById('button-muck').style.display = 'block';
+            }
+
+            var hideLostHandButtons = function() {
+                document.getElementById('button-show-cards').style.display = 'none';
+                document.getElementById('button-muck').style.display = 'none';
             }
 
             var ROYAL_FLUSH_RANK = 10;
@@ -2074,6 +2172,8 @@
                 drawCardsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
                 var potAmount = currentPotAmount || 0;
                 drawPot(ctx, potAmount, tableX, tableY, tableWidth, tableHeight);
+
+                drawRevealedHandsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
             }
         </script>
 
