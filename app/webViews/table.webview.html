@@ -1701,7 +1701,7 @@
                     player.isShowingHand = true;
                 });
 
-                if (!isCurrentPlayerWinner) {
+                if (!isCurrentPlayerWinner && players[currentPlayerIndex].card1) {
                     showLostHandButtons();
                 }
             }
