@@ -705,63 +705,69 @@
             var currentBet = 0;
             var currentPotAmount = 0;
             var beginDeal = function(onDealComplete) {
-                players.forEach(player => {
-                    player.currentBet = 0;
-                    player.isPlayed = false;
-                    player.isOut = player.numberOfChips <= 0;
-                });
+                try {
+                    players.forEach(player => {
+                        player.currentBet = 0;
+                        player.isPlayed = false;
+                        player.isOut = player.numberOfChips <= 0;
+                    });
 
-                var activePlayersCount = getActivePlayersCount();
-                if (activePlayersCount < 2) {
-                    // todo: impelement end-game for this scenario
-                    alert("congrats! you beat everyone!");
-                }
-                
-                setMessageText('Dealing...');
-
-                incrementBlinds();
-                currentBet = bigBlindAmount;
-                currentPotAmount = bigBlindAmount + littleBlindAmount;
-                deductBlindsFromPlayers();
-
-                currentDeck = shuffleCards();
-                currentCardIndex = 0;
-                var cardTimeout = 0;
-                var cardDealInterval = 200;
-                var roundOfCardsTime = (players.length - 1) * cardDealInterval;
-
-                currentTurnIndex = bigBlindIndex;
-                var isBeforeDeal = true;
-                incrementTurnIndex(isBeforeDeal);
-
-                var numberOfCardsDealt = 0;
-                var totalCardsNeeded = activePlayersCount * 2;
-                for (var i = currentTurnIndex; i < currentTurnIndex + players.length; i++) {
-                    var currentIndex = i >= players.length ? i - players.length : i;
-                    var player = players[currentIndex];
-                    player.card1 = null;
-                    player.card2 = null;
-
-                    if (!player.isOut) {
-                        setTimeout(function(nextPlayer) {
-                            var nextCard = drawCardFromDeck();
-                            nextPlayer.card1 = nextCard;
-                            numberOfCardsDealt++;
-                        }, cardTimeout, player);
-
-                        setTimeout(function(nextPlayer) {
-                            var nextCard = drawCardFromDeck();
-                            nextPlayer.card2 = nextCard;
-                            numberOfCardsDealt++;
-
-                            if (numberOfCardsDealt === totalCardsNeeded) {
-                                setMessageText('Player "' + players[currentTurnIndex].name + '"\'s turn.');
-                                onDealComplete();
-                            }
-                        }, cardTimeout + roundOfCardsTime, player);
-
-                        cardTimeout += cardDealInterval;
+                    var activePlayersCount = getActivePlayersCount();
+                    if (activePlayersCount < 2) {
+                        // todo: impelement end-game for this scenario
+                        alert("congrats! you beat everyone!");
                     }
+                    
+                    setMessageText('Dealing...');
+
+                    incrementBlinds();
+                    currentBet = bigBlindAmount;
+                    currentPotAmount = bigBlindAmount + littleBlindAmount;
+                    deductBlindsFromPlayers();
+
+                    currentDeck = shuffleCards();
+                    currentCardIndex = 0;
+                    var cardTimeout = 0;
+                    var cardDealInterval = 200;
+                    var roundOfCardsTime = (players.length - 1) * cardDealInterval;
+
+                    currentTurnIndex = bigBlindIndex;
+                    var isBeforeDeal = true;
+                    incrementTurnIndex(isBeforeDeal);
+
+                    var numberOfCardsDealt = 0;
+                    var totalCardsNeeded = activePlayersCount * 2;
+                    for (var i = currentTurnIndex; i < currentTurnIndex + players.length; i++) {
+                        var currentIndex = i >= players.length ? i - players.length : i;
+                        var player = players[currentIndex];
+                        player.card1 = null;
+                        player.card2 = null;
+
+                        if (!player.isOut) {
+                            setTimeout(function(nextPlayer) {
+                                var nextCard = drawCardFromDeck();
+                                nextPlayer.card1 = nextCard;
+                                numberOfCardsDealt++;
+                            }, cardTimeout, player);
+
+                            setTimeout(function(nextPlayer) {
+                                var nextCard = drawCardFromDeck();
+                                nextPlayer.card2 = nextCard;
+                                numberOfCardsDealt++;
+
+                                if (numberOfCardsDealt === totalCardsNeeded) {
+                                    setMessageText('Player "' + players[currentTurnIndex].name + '"\'s turn.');
+                                    onDealComplete();
+                                }
+                            }, cardTimeout + roundOfCardsTime, player);
+
+                            cardTimeout += cardDealInterval;
+                        }
+                    }
+                } catch (error) {
+                    // todo: handle this more gracefully...
+                    setMessageText("error (deal).");
+                    alert("error: [ name:" + error.name + ", message:" + error.message + ", stack: " + error.stack + " ]");
                 }
             }
 
@@ -1153,12 +1159,14 @@
             var generateCardSortingFunction = function(isAceHigh, isAscending = false) {
                 return function(a, b) {
                     var sortResult = 0;
+                    var rankA = a ? a.rank || 0 : 0;
+                    var rankB = b ? b.rank || 0 : 0;
 
                     if (isAscending) {
-                        sortResult = getCardScore(a.rank, isAceHigh) - getCardScore(b.rank, isAceHigh);
+                        sortResult = getCardScore(rankA, isAceHigh) - getCardScore(rankB, isAceHigh);
                     }
                     else {
-                        sortResult = getCardScore(b.rank, isAceHigh) - getCardScore(a.rank, isAceHigh);
+                        sortResult = getCardScore(rankB, isAceHigh) - getCardScore(rankA, isAceHigh);
                     }
 
                     return sortResult;
@@ -1387,12 +1395,14 @@
                 var displayName = '';
                 cards.sort(generateCardSortingFunction(true));
                 var cardsDisplay = null;
+                
                 cards.forEach(card => {
+                    var cardRank = card ? card.rank || '' : '';
                     if (!cardsDisplay) {
-                        cardsDisplay = card.rank;
+                        cardsDisplay = cardRank;
                     }
                     else {
-                        cardsDisplay += ', ' + card.rank;
+                        cardsDisplay += ', ' + cardRank;
                     }
                 });
 
@@ -1444,65 +1454,71 @@
             var NUMBER_OF_ROUNDS = 4; // pre-flop, flop, turn, river
             var roundNumber = 1;
             var endTurn = function() {
-                var onlyPlayerIn = getOnlyPlayerIn();
-                var isRoundComplete = onlyPlayerIn || isAllPlayersPlayed(); 
+                try {
+                    var onlyPlayerIn = getOnlyPlayerIn();
+                    var isRoundComplete = onlyPlayerIn || isAllPlayersPlayed(); 
 
-                if (isRoundComplete) {
-                    if (onlyPlayerIn || roundNumber === NUMBER_OF_ROUNDS) {
-                        if (onlyPlayerIn) {
-                            setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
-                            onlyPlayerIn.numberOfChips += currentPotAmount;
+                    if (isRoundComplete) {
+                        if (onlyPlayerIn || cardsOnTable.length === 5) {
+                            if (onlyPlayerIn) {
+                                setMessageText(onlyPlayerIn.name + ' wins. All other players folded.');
+                                onlyPlayerIn.numberOfChips += currentPotAmount;
+                            }
+                            else {
+                                var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
+                                winningPlayerRewards.forEach(reward => {
+                                    players[reward.playerIndex].numberOfChips += reward.winningAmount;
+                                });
+                            }
+
+                            players.forEach(player => {
+                                if (player.numberOfChips <= 0) {
+                                    //setMessageText('Player ' + player.name + ' has run out of chips.');
+                                    // todo: boot player, or let player add chips until their turn? 
+                                    // also fix timing of this message
+                                }
+                            });
+                            
+                            // todo: maybe make animation of pot being rewarded or some shit
+                            setTimeout(() => {
+                                cardsOnTable = [];
+                                roundNumber = 1;
+                                
+                                beginDeal(function() {
+                                    startNextTurn();
+                                });
+                            }, 5000);
                         }
                         else {
-                            var winningPlayerRewards = determineWinningAmountsByPlayerIndex();
-                            winningPlayerRewards.forEach(reward => {
-                                players[reward.playerIndex].numberOfChips += reward.winningAmount;
-                            });
-                        }
+                            roundNumber++;
+                            drawCardFromDeck(); // burn card
 
-                        players.forEach(player => {
-                            if (player.numberOfChips <= 0) {
-                                //setMessageText('Player ' + player.name + ' has run out of chips.');
-                                // todo: boot player, or let player add chips until their turn? 
-                                // also fix timing of this message
+                            if (roundNumber === 2) { // flop
+                                var timeout = 0;
+                                for (var i = 0; i < 3; i++) {
+                                    setTimeout((index) => {
+                                        cardsOnTable.push(drawCardFromDeck());
+                                        if (index === 2) {
+                                            beginRound();
+                                        }
+                                    }, timeout, i);
+                                    timeout += 250;
+                                }
                             }
-                        });
-                        
-                        // todo: maybe make animation of pot being rewarded or some shit
-                        setTimeout(() => {
-                            cardsOnTable = [];
-                            roundNumber = 1;
-                            
-                            beginDeal(function() {
-                                startNextTurn();
-                            });
-                        }, 5000);
+                            else { // turn, river
+                                cardsOnTable.push(drawCardFromDeck());
+                                beginRound();
+                            }
+                        }
                     }
                     else {
-                        roundNumber++;
-                        drawCardFromDeck(); // burn card
-
-                        if (roundNumber === 2) { // flop
-                            var timeout = 0;
-                            for (var i = 0; i < 3; i++) {
-                                setTimeout((index) => {
-                                    cardsOnTable.push(drawCardFromDeck());
-                                    if (index === 2) {
-                                        beginRound();
-                                    }
-                                }, timeout, i);
-                                timeout += 250;
-                            }
-                        }
-                        else { // turn, river
-                            cardsOnTable.push(drawCardFromDeck());
-                            beginRound();
-                        }
+                        incrementTurnIndex();
+                        startNextTurn();
                     }
-                }
-                else {
-                    incrementTurnIndex();
-                    startNextTurn();
+                } catch (error) {
+                    // todo: refund chips and deal new hand?
+                    setMessageText("error (end turn).");
+                    alert("error: [ name:" + error.name + ", message:" + error.message + ", stack: " + error.stack + " ]");
                 }
             }
 
