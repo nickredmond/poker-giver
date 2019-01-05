@@ -9,7 +9,7 @@
         </div>
         <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
-            <span>Enter amount:&nbsp;</span>
+            <p>Enter amount:</p>
             <input id="bet-amount" type="number" />
             <div id="bet-button-holder">
                 <button id="cancel-button" class="bet-dialog-button" onclick="hideBetAmountDialog()">Cancel</button>
@@ -44,12 +44,15 @@
             #bet-amount-dialog {
                 position: absolute;
                 z-index: 1000;
-                padding: 1em;
+                padding: 0 1em 1em 1em;
                 display: none;
                 background-color: #444;
+                text-align: center;
             }
-            #bet-amount-dialog span {
+            #bet-amount-dialog p {
                 color: white;
+                font-size: 1.15em;
+                margin-bottom: 0.25em;
             }
             #bet-button-holder {
                 text-align: center;
@@ -59,7 +62,7 @@
                 color: white;
                 margin-top: 0.5em;
                 font-weight: bold;
-                font-size: 1.25em;
+                font-size: 1.3em;
                 padding: 0.25em;
             }
             #bet-button {
@@ -78,6 +81,10 @@
             }
             #button-fold {
                 background-color: #991111;
+            }
+
+            #bet-amount {
+                font-size: 1.2em;
             }
 
             #message-box {
@@ -471,7 +478,7 @@
                     { x: tableX + (tableWidth / 3) - (tableWidth / 6), y: tableY + 10 },
                     { x: tableX + (2 * tableWidth / 3) - (tableWidth / 6), y: tableY + 10 },
                     { x: tableX + (5 * tableWidth / 6), y: tableY + 10 },
-                    { x: tableX + tableWidth - 10, y: tableY + (tableHeight / 2) },
+                    { x: tableX + tableWidth - 15, y: tableY + (tableHeight / 2) + 2 },
                     { x: tableX + (5 * tableWidth / 6), y: tableY + tableHeight - 10 },
                     { x: tableX + (2 * tableWidth / 3) - (tableWidth / 6), y: tableY + tableHeight - 10 },
                     { x: tableX + (tableWidth / 3) - (tableWidth / 6), y: tableY + tableHeight - 10 }
@@ -789,7 +796,12 @@
                 document.getElementById('bet-amount-dialog').style.display = 'block';
             }
 
+            var clearBetAmount = function() {
+                document.getElementById('bet-amount').value = '';
+            }
+
             var hideBetAmountDialog = function() {
+                clearBetAmount();
                 document.getElementById('modal-overlay').style.display = 'none';
                 document.getElementById('bet-amount-dialog').style.display = 'none';
             }
@@ -797,6 +809,7 @@
             var onUserPlaceBet = function() {
                 var betAmount = parseInt(document.getElementById('bet-amount').value) || 0;
                 if (betAmount) {
+                    clearBetAmount();
                     hideBetAmountDialog();
                     var actionType = isBet() ? 'bet' : 'raise';
                     onNextUserAction(actionType, betAmount);

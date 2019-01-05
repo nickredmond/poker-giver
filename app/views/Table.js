@@ -15,7 +15,7 @@ export class Table extends React.Component {
                     players: [
                         {
                             name: 'Big Nick',
-                            numberOfChips: 172096
+                            numberOfChips: 17206
                         },
                         {
                             name: 'Long John 23',
@@ -23,7 +23,7 @@ export class Table extends React.Component {
                         },
                         {
                             name: 'Kat Zeta Jo',
-                            numberOfChips: 10321066
+                            numberOfChips: 99000
                         },
                         {
                             name: 'xlitl9078',
@@ -35,7 +35,7 @@ export class Table extends React.Component {
                         },
                         {
                             name: 'legolas 8989',
-                            numberOfChips: 22012910
+                            numberOfChips: 4200
                         },
                         {
                             name: 'waterchess',
