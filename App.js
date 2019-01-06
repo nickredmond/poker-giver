@@ -20,15 +20,10 @@ import { Table } from './app/views/Table';
 
 const AppRoutes = createStackNavigator(
   {
-    HomeRoute: {
-      screen: Home
-    },
-    TableRoute: {
-      screen: Table
-    }
+    Home, Table
   },
   {
-    initialRouteName: 'HomeRoute'
+    initialRouteName: 'Home'
   }
 );
 
