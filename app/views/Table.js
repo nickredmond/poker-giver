@@ -12,40 +12,11 @@ export class Table extends React.Component {
         const interval = setInterval(() => {
             if (this.tableWebView) {
                 const data = {
-                    players: [
-                        {
-                            name: 'Big Nick',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'Gryffindor',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'Ravenclaw',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'Hufflepuff',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'Slytherin',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'MichaelScott',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'Dwight K.',
-                            numberOfChips: 2000
-                        },
-                        {
-                            name: 'CreedBratton',
-                            numberOfChips: 2000
-                        }
-                    ]
+                    player: {
+                        id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
+                        name: 'Nick Redmond'
+                    },
+                    gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'
                 }
                 this.tableWebView.postMessage(JSON.stringify(data));
                 clearInterval(interval);
