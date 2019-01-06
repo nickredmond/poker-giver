@@ -888,6 +888,15 @@
                                 isGameSetInstantly = false;
                                 handleFlopTransition(message.game);
                                 break;
+                            case 'playerAdded':
+                                if (message.playerName !== currentPlayer.name) {
+                                    var matchingPlayers = game.players.filter(player => {
+                                        return player.name === message.playerName;
+                                    });
+                                    if (matchingPlayers.length > 0) {
+                                        matchingPlayers[0].numberOfChips += message.numberOfChips;
+                                    }
+                                }
                         }
                     }
 
@@ -910,6 +919,16 @@
                     }
                 };
             }
+
+            var addChips = function(numberOfChips) {
+                currentPlayer.numberOfChips += numberOfChips;
+                var addChipsRequest = {
+                    gameId: game.id,
+                    playerName: currentPlayer.name,
+                    numberOfChips: numberOfChips
+                };
+                gameSocket.send(JSON.stringify(addChipsRequest));
+            }
         </script>
 
         <script>
@@ -919,11 +938,36 @@
             var gameSocket = null;
 
             window.onload = function() {
-                gameSocket = new WebSocket('ws://localhost:8080/', 'active-game');
+                gameSocket = new WebSocket('ws://poker-giver.herokuapp.com/');
 
                 // /// GAME READY/INIT
-                // document.addEventListener("message", function(event) {
-                //     var messageData = JSON.parse(event.data);
+               document.addEventListener("message", function(event) {
+                    var messageData =  {player: {
+                        id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
+                        name: 'Nick Redmond'
+                    },
+                    gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'}//JSON.parse(event.data);
+                    currentPlayer = messageData.player;
+                   // gameSocket.onopen = function() {
+                        var gameJoinRequest = {
+                            action: 'joinGame',
+                            gameId: messageData.gameId,
+                            playerId: currentPlayer.id
+                        }
+                        gameSocket.send(JSON.stringify(gameJoinRequest));
+                   // }
+                    beginListenForMessages();
+               });
+
+                // begin: test
+
+                // var messageData = {
+                //     player: {
+                //         id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
+                //         name: 'Nick Redmond'
+                //     },
+                //     gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'
+                // }
                 //     currentPlayer = messageData.player;
                     
                 //     gameSocket.onopen = function() {
@@ -935,28 +979,6 @@
                 //         gameSocket.send(JSON.stringify(gameJoinRequest));
                 //     }
                 //     beginListenForMessages();
-                // });
-
-                // begin: test
-
-                var messageData = {
-                    player: {
-                        id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-                        name: 'Nick Redmond'
-                    },
-                    gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'
-                }
-                    currentPlayer = messageData.player;
-                    
-                    gameSocket.onopen = function() {
-                        var gameJoinRequest = {
-                            action: 'joinGame',
-                            gameId: messageData.gameId,
-                            playerId: currentPlayer.id
-                        }
-                        gameSocket.send(JSON.stringify(gameJoinRequest));
-                    }
-                    beginListenForMessages();
 
                 // end: test
 

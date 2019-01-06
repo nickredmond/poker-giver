@@ -1,10 +1,24 @@
 import React from 'react';
 import  Canvas  from 'react-native-canvas';
-import { View, StyleSheet, Dimensions, WebView } from 'react-native';
+import { View, TouchableOpacity, Button, Text, StyleSheet, Dimensions, WebView } from 'react-native';
+import { Entypo } from '@expo/vector-icons';
 
 import { drawTableBackground } from '../services/TableService';
 
 export class Table extends React.Component {
+    static navigationOptions = {
+        headerTitle: (<View>
+            <Text>poker</Text>
+            <Text>giver</Text>
+        </View>),
+        headerRight: (
+            <Button 
+                onPress={() => alert('This is a button!')}
+                title="+ Add Chips"
+                />
+        )
+    };
+
     constructor(props) {
         super(props);
         this.tableWebView = null;
@@ -71,5 +85,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignSelf: 'stretch',
         backgroundColor: 'blue'
+    },
+    header: {
+        marginTop: 20
     }
 })
