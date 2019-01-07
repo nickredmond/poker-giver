@@ -936,6 +936,12 @@
 
         <!-- communication w/ server -->
         <script>
+            var beginPing = function() {
+                setInterval(() => {
+                    gameSocket.send(JSON.stringify({ action: 'ping' }));
+                }, 25000);
+            }
+
             var beginListenForMessages = function() {
                 gameSocket.onmessage = function(event) {
                     try {
@@ -1073,6 +1079,7 @@
                             gameSocket.send(JSON.stringify(gameJoinRequest));
                     // }
                         beginListenForMessages();
+                        beginPing();
                     }
                });
 
