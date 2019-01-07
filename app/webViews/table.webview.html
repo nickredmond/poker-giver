@@ -706,6 +706,11 @@
         
 
        <script>
+           var handleError = function(error) {
+               // todo: more gracefully handle this...
+               alert("error " + error.name + ": " + error.message + ", " + error.stack);
+           }
+
            var displayFlashMessage = function(message) {
                 var flashMessage = document.getElementById('flash-message');
                 flashMessage.innerHTML = message;
@@ -760,13 +765,17 @@
             }
 
             var onUserPlaceBet = function() {
-                var betAmount = parseInt(document.getElementById('bet-amount').value) || 0;
-                if (betAmount) {
-                    clearBetAmount();
-                    hideBetAmountDialog();
-                    var actionType = isBet() ? 'bet' : 'raise';
-                    sendUserAction(actionType, betAmount);
-                    hideButtons();
+                try {
+                    var betAmount = parseInt(document.getElementById('bet-amount').value) || 0;
+                    if (betAmount) {
+                        clearBetAmount();
+                        hideBetAmountDialog();
+                        var actionType = isBet() ? 'bet' : 'raise';
+                        sendUserAction(actionType, betAmount);
+                        hideButtons();
+                    }
+                } catch(error) {
+                    handleError(error);
                 }
             }
 
@@ -831,31 +840,35 @@
         <!-- Base logic function (draw, update) -->
         <script>
             var draw = function(canvas) {
-                var ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                var tableX = parseInt(canvas.width * 0.15);
-                var tableY = parseInt(canvas.height * 0.15);
-                var tableWidth = parseInt(canvas.width * 0.65);
-                var tableHeight = parseInt(canvas.height * 0.25);
+                try {
+                    var ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    var tableX = parseInt(canvas.width * 0.15);
+                    var tableY = parseInt(canvas.height * 0.15);
+                    var tableWidth = parseInt(canvas.width * 0.65);
+                    var tableHeight = parseInt(canvas.height * 0.25);
 
-                drawTable(ctx, tableX, tableY, tableWidth, tableHeight);
-                drawPlayers(ctx, game.players, tableX, tableY, tableWidth, tableHeight);
+                    drawTable(ctx, tableX, tableY, tableWidth, tableHeight);
+                    drawPlayers(ctx, game.players, tableX, tableY, tableWidth, tableHeight);
 
-                if (currentPlayerIndex === 0 || currentPlayerIndex) {
-                    drawUserHand(ctx, canvas);
+                    if (currentPlayerIndex === 0 || currentPlayerIndex) {
+                        drawUserHand(ctx, canvas);
+                    }
+
+                    if (areBlindsSet()) {
+                        drawBlinds(ctx, tableX, tableY, tableWidth, tableHeight);
+                    }
+                    drawPlayerHands(ctx, tableX, tableY, tableWidth, tableHeight);
+
+                    drawCardsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
+                    var potAmount = game.currentPotAmount || 0;
+                    drawPot(ctx, potAmount, tableX, tableY, tableWidth, tableHeight);
+
+                    drawRevealedHandsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
+                } catch(error) {
+                    handleError(error);
                 }
-
-                if (areBlindsSet()) {
-                    drawBlinds(ctx, tableX, tableY, tableWidth, tableHeight);
-                }
-                drawPlayerHands(ctx, tableX, tableY, tableWidth, tableHeight);
-
-                drawCardsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
-                var potAmount = game.currentPotAmount || 0;
-                drawPot(ctx, potAmount, tableX, tableY, tableWidth, tableHeight);
-
-                drawRevealedHandsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
             }
         </script>
 
@@ -902,8 +915,7 @@
                         }
                     }
                 } catch (error) {
-                    // todo: more gracefully handle this...
-                    alert("error " + error.name + ": " + error.message + ", " + error.stack);
+                    handleError(error);
                 }
             }
 
@@ -921,15 +933,13 @@
                                     game.cardsOnTable.push(updatedGame.cardsOnTable[index]);
                                 }
                             } catch (error) {
-                                // todo: better error handling
-                                alert("error " + error.name + ": " + error.message + ", " + error.stack);
+                                handleError(error);
                             }
                         }, timeout, i);
                         timeout += 300;
                     }
                 } catch (error) {
-                    // todo: better error handling
-                    alert("error " + error.name + ": " + error.message + ", " + error.stack);
+                    handleError(error);
                 }
             }
         </script>
@@ -991,8 +1001,7 @@
                             setMessageText(message.message);
                         }
                     } catch (error) {
-                        // todo: handle this more gracefully
-                        alert("error " + error.name + ": " + error.message + ", " + error.stack)
+                        handleError(error);
                     }
                 };
             }
@@ -1015,25 +1024,28 @@
                         stopUserOutlineAnimation();
                     }
                 } catch (error) {
-                    // todo: better error-handling
-                    alert("error (handleUserButtons) " + error.name + ", " + error.message +", " + error.stack);
+                    handleError(error);
                 }
             }
 
             var handleShowCardsOrMuck = function() {
-                var winningPlayers = game.players.filter(player => {
-                    return player.isShowingHand;
-                });
+                try {
+                    var winningPlayers = game.players.filter(player => {
+                        return player.isShowingHand;
+                    });
 
-                var isCurrentPlayerWinner = false;
-                winningPlayers.forEach(player => {
-                    if (game.players[currentPlayerIndex].name === player.name) {
-                        isCurrentPlayerWinner = true;
+                    var isCurrentPlayerWinner = false;
+                    winningPlayers.forEach(player => {
+                        if (game.players[currentPlayerIndex].name === player.name) {
+                            isCurrentPlayerWinner = true;
+                        }
+                        player.isShowingHand = true;
+                    });
+                    if (winningPlayers.length && !isCurrentPlayerWinner && game.players[currentPlayerIndex].card1) {
+                        showLostHandButtons();
                     }
-                    player.isShowingHand = true;
-                });
-                if (winningPlayers.length && !isCurrentPlayerWinner && game.players[currentPlayerIndex].card1) {
-                    showLostHandButtons();
+                } catch (error) {
+                    handleError(error);
                 }
             }
 
