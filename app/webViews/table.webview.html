@@ -157,16 +157,14 @@
             }
 
             #flash-message {
-                /* font-size: 1.1em; */
-                /* text-align: center;
-                display: none;
-                padding: 0.25em;
-                margin: 0.5em;
-                background-color: '#' */
+                position: absolute;
+                top: 2em;
+                left: 0.5em;
+                right: 0.5em;
+                z-index: 1001;
                 display: none;
                 font-size: 1.1em;
 
-                position: relative;
                 padding: .75rem 1.25rem;
                 margin: 1rem 0.5rem 1rem 0.5rem;
                 border: 1px solid transparent;
@@ -1012,12 +1010,17 @@
                         return player.isShowingHand;
                     }).length > 0;
 
-                    if (!isHandOver && game.players[game.currentTurnIndex].name === currentPlayer.name) {
+                    var nextPlayer = game.players[game.currentTurnIndex];
+                    if (!isHandOver && !nextPlayer.isOut && nextPlayer.name === currentPlayer.name) {
                         showCallCheckButton();
                         showRaiseBetButton();
                         showFoldButton();
-                        animateUserOutline();
+                        
+                        if (!userOutlineInterval) {
+                            animateUserOutline();
+                        }
                     } else {
+                        hideButtons();
                         stopUserOutlineAnimation();
                     }
                 } catch (error) {
