@@ -36,7 +36,7 @@ export class Home extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 15,
+        marginTop: 20,
         alignItems: 'center'
     },
     button: {

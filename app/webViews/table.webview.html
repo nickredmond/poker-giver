@@ -15,6 +15,7 @@
             <button id="button-show-cards" class="game-button after-hand-button">Show Cards</button>
             <button id="button-muck" class="game-button after-hand-button">Muck</button>
         </div>
+        <div id="flash-message"></div>
         <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
             <p>Enter amount:</p>
@@ -153,6 +154,27 @@
                 z-index: 999;
                 background-color: #eee;
                 width: 80%;
+            }
+
+            #flash-message {
+                /* font-size: 1.1em; */
+                /* text-align: center;
+                display: none;
+                padding: 0.25em;
+                margin: 0.5em;
+                background-color: '#' */
+                display: none;
+                font-size: 1.1em;
+
+                position: relative;
+                padding: .75rem 1.25rem;
+                margin: 1rem 0.5rem 1rem 0.5rem;
+                border: 1px solid transparent;
+                border-radius: .25rem;
+
+                color: #004085;
+                background-color: #cce5ff;
+                border-color: #b8daff;
             }
         </style>
 
@@ -684,6 +706,18 @@
         
 
        <script>
+           var displayFlashMessage = function(message) {
+                var flashMessage = document.getElementById('flash-message');
+                flashMessage.innerHTML = message;
+                flashMessage.style.display = 'block';
+                setTimeout(() => {
+                    flashMessage.style.display = 'none';
+                }, 5000);
+           }
+
+           var hideFlashMessage = function() {
+               document.getElementById('flash-message').style.display = 'none';
+           }
 
             var hideButtons = function() {
                 document.getElementById('button-call-check').style.display = 'none';
@@ -731,10 +765,19 @@
                     clearBetAmount();
                     hideBetAmountDialog();
                     var actionType = isBet() ? 'bet' : 'raise';
-                    
-                   
-                    // todo: fire event to server
+                    sendUserAction(actionType, betAmount);
+                    hideButtons();
                 }
+            }
+
+            var sendUserAction = function(actionType, actionAmount) {
+                gameSocket.send(JSON.stringify({
+                    action: 'userAction',
+                    actionType: actionType,
+                    actionAmount: actionAmount,
+                    gameId: game.id,
+                    playerName: currentPlayer.name
+                })); 
             }
 
             // if turn option is betting vs raising
@@ -750,8 +793,8 @@
             var setUserActions = function() {
                 document.getElementById('button-call-check').onclick = function() {
                     var actionType = isCheck() ? 'check' : 'call';
-                    onNextUserAction(actionType); 
-                    // todo: fire event to server
+                    sendUserAction(actionType);
+                    hideButtons();
                 }
 
                 document.getElementById('button-raise-bet').onclick = function() {
@@ -759,19 +802,17 @@
                 }
 
                 document.getElementById('button-fold').onclick = function() {
-                    onNextUserAction('fold');
-                    // todo: fire event to server
+                    sendUserAction('fold');
+                    hideButtons();
                 }
 
                 document.getElementById('button-show-cards').onclick = function() {
-                    players[currentPlayerIndex].isShowingHand = true;
                     hideLostHandButtons();
-                    // todo: fire event to server that user has shown cards
+                    sendUserAction('showCards');
                 }
 
                 document.getElementById('button-muck').onclick = function() {
                     hideLostHandButtons();
-                    // todo: fire event to server that user has mucked
                 }
             }
 
@@ -821,37 +862,48 @@
         <!-- turn-taking transition, e.g. deal, flop -->
         <script>
             var handleDealTransition = function(updatedGame, activePlayersCount) {
-                setMessageText('Dealing...');
-                game.cardsOnTable = [];
-                game.players.forEach(player => {
-                    player.card1 = null;
-                    player.card2 = null;
-                    player.isShowingHand = false;
-                });
-
-                var cardTimeout = 0;
-                var cardDealInterval = 200;
-                var roundOfCardsTime = (activePlayersCount - 1) * cardDealInterval;
-
-                var numberOfCardsDealt = 0;
-                var totalCardsNeeded = activePlayersCount * 2;
-                for (var i = updatedGame.currentTurnIndex; i < updatedGame.currentTurnIndex + updatedGame.players.length; i++) {
-                    var currentIndex = i >= updatedGame.players.length ? i - updatedGame.players.length : i;
-                    if (!updatedGame.players[currentIndex].isOut) {
-                        setTimeout(function(index) {
-                            game.players[index].card1 = updatedGame.players[index].card1;
-                            numberOfCardsDealt++;
-                        }, cardTimeout, currentIndex);
-                        setTimeout(function(index) {
-                            game.players[index].card2 = updatedGame.players[index].card2;
-                            numberOfCardsDealt++;
-                            if (numberOfCardsDealt === totalCardsNeeded) {
-                                setMessageText('Player "' + updatedGame.players[updatedGame.currentTurnIndex].name + '"\'s turn.');
-                                game = updatedGame;
-                            }
-                        }, cardTimeout + roundOfCardsTime, currentIndex);
-                        cardTimeout += cardDealInterval;
+                try {
+                    setMessageText('Dealing...');
+                    var gameCopy = JSON.parse(JSON.stringify(updatedGame));
+                    game = game || updatedGame;
+                    game.cardsOnTable = [];
+                    //game.players.forEach(player => {
+                    for (var i = 0; i < game.players.length; i++) {
+                        var player = game.players[i];
+                        player.card1 = null;
+                        player.card2 = null;
+                        player.isShowingHand = false;
                     }
+                    //});
+
+                    var cardTimeout = 0;
+                    var cardDealInterval = 200;
+                    var roundOfCardsTime = (activePlayersCount - 1) * cardDealInterval;
+
+                    var numberOfCardsDealt = 0;
+                    var totalCardsNeeded = activePlayersCount * 2;
+                    for (var i = gameCopy.currentTurnIndex; i < gameCopy.currentTurnIndex + gameCopy.players.length; i++) {
+                        var currentIndex = i >= gameCopy.players.length ? i - gameCopy.players.length : i;
+                        if (!gameCopy.players[currentIndex].isOut) {
+                            setTimeout(function(index) {
+                                game.players[index].card1 = gameCopy.players[index].card1;
+                                numberOfCardsDealt++;
+                            }, cardTimeout, currentIndex);
+                            setTimeout(function(index) {
+                                game.players[index].card2 = gameCopy.players[index].card2;
+                                numberOfCardsDealt++;
+                                if (numberOfCardsDealt === totalCardsNeeded) {
+                                    setMessageText('Player "' + gameCopy.players[gameCopy.currentTurnIndex].name + '"\'s turn.');
+                                    game = gameCopy;
+                                    handleUserButtons();
+                                }
+                            }, cardTimeout + roundOfCardsTime, currentIndex);
+                            cardTimeout += cardDealInterval;
+                        }
+                    }
+                } catch (error) {
+                    // todo: more gracefully handle this...
+                    alert("error " + error.name + ": " + error.message + ", " + error.stack);f
                 }
             }
 
@@ -861,6 +913,7 @@
                     setTimeout((index) => {
                         if (index === 2) {
                             game = updatedGame;
+                            handleUserButtons();
                         }
                         else {
                             game.cardsOnTable.push(updatedGame.cardsOnTable[index]);
@@ -875,55 +928,97 @@
         <script>
             var beginListenForMessages = function() {
                 gameSocket.onmessage = function(event) {
-                    console.log("MESSAGE RECEIVED: ", event.data);
-                    var message = JSON.parse(event.data);
-                    var isGameSetInstantly = true;
+                    try {
+                        var message = JSON.parse(event.data);
+                        var isGameSetInstantly = true;
 
-                    if (message.action) {
-                        switch (message.action) {
-                            case 'deal':
-                                isGameSetInstantly = false;
-                                handleDealTransition(message.game, message.activePlayersCount);
-                                break;
-                            case 'flop': 
-                                isGameSetInstantly = false;
-                                handleFlopTransition(message.game);
-                                break;
-                            case 'playerAdded':
-                                if (message.playerName !== currentPlayer.name) {
-                                    var matchingPlayers = game.players.filter(player => {
-                                        return player.name === message.playerName;
-                                    });
-                                    if (matchingPlayers.length > 0) {
-                                        matchingPlayers[0].numberOfChips += message.numberOfChips;
+                        if (message.action) {
+                            switch (message.action) {
+                                case 'deal':
+                                    hideFlashMessage();
+                                    isGameSetInstantly = false;
+                                    handleDealTransition(message.game, message.activePlayersCount);
+                                    break;
+                                case 'flop': 
+                                    isGameSetInstantly = false;
+                                    handleFlopTransition(message.game);
+                                    break;
+                                case 'playerAdded':
+                                    if (message.playerName !== currentPlayer.name) {
+                                        var matchingPlayers = game.players.filter(player => {
+                                            return player.name === message.playerName;
+                                        });
+                                        if (matchingPlayers.length > 0) {
+                                            matchingPlayers[0].numberOfChips += message.numberOfChips;
+                                        }
                                     }
-                                }
-                        }
-                    }
-
-                    if (message.game) {
-                        if (currentPlayerIndex === null) {
-                            for (var i = 0; i < message.game.players.length && currentPlayerIndex === null; i++) {
-                                if (message.game.players[i].name === currentPlayer.name) {
-                                    currentPlayerIndex = i;
-                                }
                             }
                         }
 
-                        if (isGameSetInstantly) {
-                            game = message.game;
-                        }
-                    }
+                        if (message.game) {
+                            if (currentPlayerIndex === null) {
+                                for (var i = 0; i < message.game.players.length && currentPlayerIndex === null; i++) {
+                                    if (message.game.players[i].name === currentPlayer.name) {
+                                        currentPlayerIndex = i;
+                                    }
+                                }
+                            }
 
-                    if (message.message) {
-                        setMessageText(message.message);
+                            if (isGameSetInstantly) {
+                                game = message.game;
+                                handleShowCardsOrMuck();
+                                handleUserButtons();
+                            }
+                        }
+
+                        if (message.message) {
+                            setMessageText(message.message);
+                        }
+                    } catch (error) {
+                        // todo: handle this more gracefully
+                        alert("error " + error.name + ": " + error.message + ", " + error.stack)
                     }
                 };
             }
 
-            var addChips = function(numberOfChips) {
-                currentPlayer.numberOfChips += numberOfChips;
+            var isUserLastAction = false;
+            var handleUserButtons = function() {
+                var isHandOver = game.players.filter(player => {
+                    return player.isShowingHand;
+                }).length > 0;
+
+                if (!isHandOver && !isUserLastAction && game.players[game.currentTurnIndex].name === currentPlayer.name) {
+                    isUserLastAction = true;
+                    showCallCheckButton();
+                    showRaiseBetButton();
+                    showFoldButton();
+                    animateUserOutline();
+                } else {
+                    isUserLastAction = false;
+                    stopUserOutlineAnimation();
+                }
+            }
+
+            var handleShowCardsOrMuck = function() {
+                var winningPlayers = game.players.filter(player => {
+                    return player.isShowingHand;
+                });
+
+                var isCurrentPlayerWinner = false;
+                winningPlayers.forEach(player => {
+                    if (game.players[currentPlayerIndex].name === player.name) {
+                        isCurrentPlayerWinner = true;
+                    }
+                    player.isShowingHand = true;
+                });
+                if (winningPlayers.length && !isCurrentPlayerWinner && game.players[currentPlayerIndex].card1) {
+                    showLostHandButtons();
+                }
+            }
+
+            var sendAddChipsRequest = function(numberOfChips) {
                 var addChipsRequest = {
+                    action: 'addChips',
                     gameId: game.id,
                     playerName: currentPlayer.name,
                     numberOfChips: numberOfChips
@@ -937,27 +1032,33 @@
             var currentPlayer = null;
             var currentPlayerIndex = null;
             var gameSocket = null;
+            var isBoughtIn = false;
 
             window.onload = function() {
                 gameSocket = new WebSocket('ws://poker-giver.herokuapp.com/');
 
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
-                    var messageData =  {player: {
-                        id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-                        name: 'Nick Redmond'
-                    },
-                    gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'}//JSON.parse(event.data);
-                    currentPlayer = messageData.player;
-                   // gameSocket.onopen = function() {
-                        var gameJoinRequest = {
-                            action: 'joinGame',
-                            gameId: messageData.gameId,
-                            playerId: currentPlayer.id
-                        }
-                        gameSocket.send(JSON.stringify(gameJoinRequest));
-                   // }
-                    beginListenForMessages();
+                    var messageData =  JSON.parse(event.data);
+
+                    if (isBoughtIn) {
+                        sendAddChipsRequest(messageData.numberOfChips);
+                        displayFlashMessage(messageData.numberOfChips + ' chips will be added at the end of the round.');
+                    }
+                    else {
+                        isBoughtIn = true;
+                        currentPlayer = messageData.player;
+                    // gameSocket.onopen = function() {
+                            var gameJoinRequest = {
+                                action: 'joinGame',
+                                gameId: messageData.gameId,
+                                playerId: currentPlayer.id,
+                                buyInAmount: messageData.numberOfChips
+                            }
+                            gameSocket.send(JSON.stringify(gameJoinRequest));
+                    // }
+                        beginListenForMessages();
+                    }
                });
 
                 // begin: test
@@ -1000,8 +1101,7 @@
                     }
                 }, 1000 / 24);
 
-                // begin test
-                setMessageText("test test test");
+                setMessageText("Joining table...");
             }
         </script>
 
