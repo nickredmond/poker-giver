@@ -1006,21 +1006,18 @@
                 };
             }
 
-            var isUserLastAction = false;
             var handleUserButtons = function() {
                 try {
                     var isHandOver = game.players.filter(player => {
                         return player.isShowingHand;
                     }).length > 0;
 
-                    if (!isHandOver && !isUserLastAction && game.players[game.currentTurnIndex].name === currentPlayer.name) {
-                        isUserLastAction = true;
+                    if (!isHandOver && game.players[game.currentTurnIndex].name === currentPlayer.name) {
                         showCallCheckButton();
                         showRaiseBetButton();
                         showFoldButton();
                         animateUserOutline();
                     } else {
-                        isUserLastAction = false;
                         stopUserOutlineAnimation();
                     }
                 } catch (error) {
