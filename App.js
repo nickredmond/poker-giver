@@ -17,10 +17,11 @@ import { createStackNavigator, createAppContainer } from 'react-navigation';
 
 import { Home } from './app/views/Home';
 import { Table } from './app/views/Table';
+import { TablesList } from './app/views/TablesList';
 
 const AppRoutes = createStackNavigator(
   {
-    Home, Table
+    Home, Table, TablesList
   },
   {
     initialRouteName: 'Home'

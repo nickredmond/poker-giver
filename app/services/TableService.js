@@ -1,5 +1,10 @@
-export const drawTableBackground = (ctx, canvasWidth, canvasHeight) => {
-    console.log("canvas width " + canvasWidth + ", " + canvasHeight)
-    ctx.fillStyle = '#006405';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-};
+
+export const getApiUrl = () => {
+    return 'https://poker-giver-api.herokuapp.com:19056/';
+}
+
+// todo: use pagination?
+export const getTables = () => {
+    alert('hell ' + getApiUrl())
+    return fetch(getApiUrl() + 'tables');
+}

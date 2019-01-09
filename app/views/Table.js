@@ -7,8 +7,6 @@ import {
 import { Entypo } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 
-import { drawTableBackground } from '../services/TableService';
-
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
 export class Table extends React.Component {
@@ -39,14 +37,6 @@ export class Table extends React.Component {
             isModalVisible: true,
             betAmount: betAmountPlaceholder
         };
-
-        // {
-        //     id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-        //     name: 'Nick Redmond'
-        // }
-        // game id '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'
-
-        
     }
 
     toggleModal = () => {
