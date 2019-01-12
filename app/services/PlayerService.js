@@ -136,7 +136,8 @@ export const getPlayerInfo = (isLocal) => {
                             },
                             body: JSON.stringify({ token })
                         }).then(
-                            (chipsCount) => {
+                            (response) => {
+                                const chipsCount = response.numberOfChips || 0;
                                 AsyncStorage.setItem('number-of-chips', chipsCount, (err) => {
                                     if (err) {
                                         reject('Error reading from device storage.');
