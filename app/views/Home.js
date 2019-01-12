@@ -39,6 +39,10 @@ export class Home extends React.Component {
         });
     }
 
+    loggedIn = () => {
+        this.setState({ isAuthenticated: true });
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -54,7 +58,7 @@ export class Home extends React.Component {
 
                 {
                     !(this.state.isLoading || this.state.isAuthenticated) && 
-                    <Login></Login>
+                    <Login loggedIn={this.loggedIn}></Login>
                 }
             </View>
         );

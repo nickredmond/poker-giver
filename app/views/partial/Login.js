@@ -32,11 +32,10 @@ export class Login extends React.Component {
             createUser(this.state.username, this.state.password, this.state.email).then(
                 (response) => {
                     if (response.isSuccess) {
-                        // navigate to tables
+                        this.props.loggedIn();
                     }
                     else {
-                        // todo: better error handling, just set error on page
-                        alert('Problem creating user.');
+                        this.setPageError('There was a problem creating new user.');
                     }
                 },
                 (err) => {
@@ -52,11 +51,10 @@ export class Login extends React.Component {
             logIn(this.state.username, this.state.password).then(
                 (response) => {
                     if (response.isSuccess) {
-                        // navigate to tables
+                        this.props.loggedIn();
                     }
                     else {
-                        // todo: better error handling, just set error on page
-                        alert('Problem logging in.');
+                        this.setPageError('There was a problem logging in.');
                     }
                 },
                 (err) => {

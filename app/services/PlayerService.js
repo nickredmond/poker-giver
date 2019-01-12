@@ -39,20 +39,27 @@ export const authenticate = () => {
     });
 }
 
-export const saveAuthResponseData = (response, resolve, reject) => {
-    AsyncStorage.setItem('user-token', response.token, (err) => {
+export const saveAuthResponseData = (username, response, resolve, reject) => {
+    AsyncStorage.setItem('player-name', username, (err) => {
         if (err) {
             reject('Error saving to device storage.');
         }
         else {
-            AsyncStorage.setItem('number-of-chips', response.numberOfChips, (err) => {
+            AsyncStorage.setItem('user-token', response.token, (err) => {
                 if (err) {
                     reject('Error saving to device storage.');
                 }
                 else {
-                    resolve({ isSuccess: true });
+                    AsyncStorage.setItem('number-of-chips', response.numberOfChips, (err) => {
+                        if (err) {
+                            reject('Error saving to device storage.');
+                        }
+                        else {
+                            resolve({ isSuccess: true });
+                        }
+                    })
                 }
-            })
+            });
         }
     })
 }
@@ -67,7 +74,7 @@ export const createUser = (username, password, email) => {
             body: JSON.stringify({ username, password, email })
         }).then(
             (response) => {
-                saveAuthResponseData(response, resolve, reject);
+                saveAuthResponseData(userame, response, resolve, reject);
             },
             (err) => {
                 alert('err creating user ', err);
@@ -87,7 +94,7 @@ export const logIn = (username, password) => {
             body: JSON.stringify({ username, password })
         }).then(
             (response) => {
-                saveAuthResponseData(response, resolve, reject);
+                saveAuthResponseData(username, response, resolve, reject);
             },
             (err) => {
                 alert('err logging in ', err);
@@ -98,49 +105,54 @@ export const logIn = (username, password) => {
     });
 }
 
-export const getNumberOfChips = (isLocal) => {
+export const getPlayerInfo = (isLocal) => {
     return new Promise((resolve, reject) => {
-        if (isLocal) {
-            AsyncStorage.getItem('number-of-chips', (err, numberOfChips) => {
-                if (err) {
-                    reject('Error reading from device storage.');    
-                }
-                else {
-                    const chipsCount = numberOfChips || 0;
-                    resolve(chipsCount);
-                }
-            });
-        }
-        else {
-            AsyncStorage.getItem('user-token', (err, token) => {
-                if (err) {
-                    reject('Error reading values from device.');
-                }
-                else {
-                    // todo: implement this in API
-                    fetch(getApiUrl() + 'chips-count', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ token })
-                    }).then(
-                        (chipsCount) => {
-                            AsyncStorage.setItem('number-of-chips', chipsCount, (err) => {
-                                if (err) {
-                                    reject('Error reading from device storage.');
-                                }
-                                else {
-                                    resolve(chipsCount);
-                                }
-                            })
-                        }, 
-                        (err) => {
-                            reject('Error retrieving player info.');
-                        }
-                    );
-                }
-            });
-        }
+        AsyncStorage.getItem('player-name', (err, playerName) => {
+            if (err) {
+                reject('Error reading from device storage.');
+            }
+            else if (isLocal) {
+                AsyncStorage.getItem('number-of-chips', (err, numberOfChips) => {
+                    if (err) {
+                        reject('Error reading from device storage.');    
+                    }
+                    else {
+                        const chipsCount = numberOfChips || 0;
+                        resolve({ playerName, numberOfChips: chipsCount });
+                    }
+                });
+            }
+            else {
+                AsyncStorage.getItem('user-token', (err, token) => {
+                    if (err) {
+                        reject('Error reading values from device.');
+                    }
+                    else {
+                        // todo: implement this in API
+                        fetch(getApiUrl() + 'chips-count', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ token })
+                        }).then(
+                            (chipsCount) => {
+                                AsyncStorage.setItem('number-of-chips', chipsCount, (err) => {
+                                    if (err) {
+                                        reject('Error reading from device storage.');
+                                    }
+                                    else {
+                                        resolve({ playerName, numberOfChips: chipsCount });
+                                    }
+                                })
+                            }, 
+                            (err) => {
+                                reject('Error retrieving player info.');
+                            }
+                        );
+                    }
+                });
+            }
+        })
     })
 }
