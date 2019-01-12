@@ -15,7 +15,8 @@
             <button id="button-show-cards" class="game-button after-hand-button">Show Cards</button>
             <button id="button-muck" class="game-button after-hand-button">Muck</button>
         </div>
-        <div id="flash-message"></div>
+        <div id="flash-message" class="alert alert-info"></div>
+        <div id="flash-error" class="alert alert-danger"></div>
         <div id="modal-overlay"></div>
         <div id="bet-amount-dialog">
             <p>Enter amount:</p>
@@ -156,7 +157,7 @@
                 width: 80%;
             }
 
-            #flash-message {
+            .alert {
                 position: absolute;
                 top: 2em;
                 left: 0.5em;
@@ -169,10 +170,16 @@
                 margin: 1rem 0.5rem 1rem 0.5rem;
                 border: 1px solid transparent;
                 border-radius: .25rem;
-
+            }
+            .alert-info {
                 color: #004085;
                 background-color: #cce5ff;
                 border-color: #b8daff;
+            }
+            .alert-danger {
+                color: #721c24;
+                background-color: #f8d7da;
+                border-color: #f5c6cb;
             }
         </style>
 
@@ -709,13 +716,20 @@
                alert("error " + error.name + ": " + error.message + ", " + error.stack);
            }
 
-           var displayFlashMessage = function(message) {
-                var flashMessage = document.getElementById('flash-message');
-                flashMessage.innerHTML = message;
-                flashMessage.style.display = 'block';
+           var displayMessage = function(message, messageElement) {
+                messageElement.innerHTML = message;
+                messageElement.style.display = 'block';
                 setTimeout(() => {
-                    flashMessage.style.display = 'none';
+                    messageElement.style.display = 'none';
                 }, 5000);
+           }
+           var displayFlashMessage = function(message) {
+               var flashMessageElement = document.getElementById('flash-message');
+               displayMessage(message, flashMessageElement);
+           }
+           var displayErrorMessage = function(message) {
+               var errorMessageElement = document.getElementById('flash-error');
+               displayMessage(message, errorMessageElement);
            }
 
            var hideFlashMessage = function() {
@@ -950,53 +964,65 @@
                 }, 25000);
             }
 
+            var handleMessageFromServer = function(message) {
+                var isGameSetInstantly = true;
+
+                if (message.action) {
+                    switch (message.action) {
+                        case 'deal':
+                            hideFlashMessage();
+                            isGameSetInstantly = false;
+                            handleDealTransition(message.game, message.activePlayersCount);
+                            break;
+                        case 'flop': 
+                            isGameSetInstantly = false;
+                            handleFlopTransition(message.game);
+                            break;
+                        case 'playerAdded':
+                            if (message.playerName !== currentPlayer.name) {
+                                var matchingPlayers = game.players.filter(player => {
+                                    return player.name === message.playerName;
+                                });
+                                if (matchingPlayers.length > 0) {
+                                    matchingPlayers[0].numberOfChips += message.numberOfChips;
+                                }
+                            }
+                    }
+                }
+
+                if (message.game) {
+                    if (currentPlayerIndex === null) {
+                        for (var i = 0; i < message.game.players.length && currentPlayerIndex === null; i++) {
+                            if (message.game.players[i].name === currentPlayer.name) {
+                                currentPlayerIndex = i;
+                            }
+                        }
+                    }
+
+                    if (isGameSetInstantly) {
+                        game = message.game;
+                        handleShowCardsOrMuck();
+                        handleUserButtons();
+                    }
+                }
+
+                if (message.message) {
+                    setMessageText(message.message);
+                }
+            }
+
             var beginListenForMessages = function() {
                 gameSocket.onmessage = function(event) {
                     try {
                         var message = JSON.parse(event.data);
-                        var isGameSetInstantly = true;
-
-                        if (message.action) {
-                            switch (message.action) {
-                                case 'deal':
-                                    hideFlashMessage();
-                                    isGameSetInstantly = false;
-                                    handleDealTransition(message.game, message.activePlayersCount);
-                                    break;
-                                case 'flop': 
-                                    isGameSetInstantly = false;
-                                    handleFlopTransition(message.game);
-                                    break;
-                                case 'playerAdded':
-                                    if (message.playerName !== currentPlayer.name) {
-                                        var matchingPlayers = game.players.filter(player => {
-                                            return player.name === message.playerName;
-                                        });
-                                        if (matchingPlayers.length > 0) {
-                                            matchingPlayers[0].numberOfChips += message.numberOfChips;
-                                        }
-                                    }
-                            }
+                        if (message.isTableFull) {
+                            displayErrorMessage('Table is full! Please try another table.');
                         }
-
-                        if (message.game) {
-                            if (currentPlayerIndex === null) {
-                                for (var i = 0; i < message.game.players.length && currentPlayerIndex === null; i++) {
-                                    if (message.game.players[i].name === currentPlayer.name) {
-                                        currentPlayerIndex = i;
-                                    }
-                                }
-                            }
-
-                            if (isGameSetInstantly) {
-                                game = message.game;
-                                handleShowCardsOrMuck();
-                                handleUserButtons();
-                            }
+                        else if (message.errorMessage) {
+                            displayErrorMessage('There was a problem joining the table.');
                         }
-
-                        if (message.message) {
-                            setMessageText(message.message);
+                        else {
+                            handleMessageFromServer(message);
                         }
                     } catch (error) {
                         handleError(error);
@@ -1085,8 +1111,9 @@
                             var gameJoinRequest = {
                                 action: 'joinGame',
                                 gameId: messageData.gameId,
-                                playerId: currentPlayer.id,
-                                buyInAmount: messageData.numberOfChips
+                                playerName: currentPlayer.name,
+                                buyInAmount: messageData.numberOfChips,
+                                token: 'somespecialtoken'// todo: get this from native app
                             }
                             gameSocket.send(JSON.stringify(gameJoinRequest));
                     // }

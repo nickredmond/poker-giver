@@ -1,10 +1,9 @@
 
 export const getApiUrl = () => {
-    return 'https://poker-giver-api.herokuapp.com:19056/';
+    return 'https://poker-giver-api.herokuapp.com/';
 }
 
 // todo: use pagination?
 export const getTables = () => {
-    alert('hell ' + getApiUrl())
     return fetch(getApiUrl() + 'tables');
 }

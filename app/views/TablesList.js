@@ -14,15 +14,16 @@ export class TablesList extends React.Component {
         this.state = {
             player: navigation.getParam('player')
         };
-        getTables().then(tables => {
-            alert('got some tables')
-            this.setState({ tables });
-        });
+        getTables()
+            .then(response => response.json())
+            .then(tables => {
+                this.setState({ tables });
+            });
     }
 
-    getPlayersCountText = (players, maxPlayersCount) => {
-        const playerCountText = players ? players.length : '0';
-        return playerCountText + '/' + (maxPlayersCount || 0);
+    getPlayersCountText = (table) => {
+        const totalPlayers = (table.numberOfHumanPlayers || 0) + table.numberOfAiPlayers;
+        return totalPlayers + '/' + table.numberOfPlayers;
     }
 
     selectedTable = (gameId) => {
@@ -38,11 +39,12 @@ export class TablesList extends React.Component {
         });
     }
 
-    renderList = ({ table }) => {
+    renderList = ({ item: table }) => {
         return (
+            // todo: search games to join by name
             <TouchableOpacity style={styles.tableItem} onPress={() => this.selectedTable(table.gameId)}>
                 <Text>{ table.name }</Text>
-                <Text>{ getPlayersCount(table.numberOfPlayers, table.maxPlayersCount) }</Text>
+                <Text>{ this.getPlayersCountText(table) }</Text>
             </TouchableOpacity>
         )
     }
@@ -50,7 +52,10 @@ export class TablesList extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} />
+                { 
+                    this.state.tables && 
+                    <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} /> 
+                }
             </View>
         )
     }

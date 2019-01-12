@@ -14,9 +14,11 @@ export class Home extends React.Component {
     goToTable = () => {
         // todo: use player account info
         this.navigate('TablesList',  {
-            id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-            name: 'Nick Redmond',
-            numberOfChips: 2000
+            player: {
+                id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
+                name: 'Nick Redmond',
+                numberOfChips: 2000
+            }
         });
     }
 
