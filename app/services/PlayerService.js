@@ -128,7 +128,6 @@ export const getPlayerInfo = (isLocal) => {
                         reject('Error reading values from device.');
                     }
                     else {
-                        // todo: implement this in API
                         fetch(getApiUrl() + 'chips-count', {
                             method: 'POST',
                             headers: {

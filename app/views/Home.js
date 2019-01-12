@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MainMenu } from './partial/MainMenu';
+import { Login } from './partial/Login';
 import { authenticate } from '../services/PlayerService';
 
 export class Home extends React.Component {
@@ -46,9 +47,11 @@ export class Home extends React.Component {
     render() {
         return (
             <View style={styles.container}>
+                <Text>poker giver</Text>
+
                 {
                     this.state.isLoading && 
-                    <View>Loading...</View>
+                    <View><Text>Loading...</Text></View>
                 }
 
                 {
@@ -67,7 +70,9 @@ export class Home extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         marginTop: 20,
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#333'
     }
 });
