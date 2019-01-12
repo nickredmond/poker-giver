@@ -57,21 +57,21 @@ export const saveAuthResponseData = (response, resolve, reject) => {
     })
 }
 
-export const createUser = (username, password) => {
+export const createUser = (username, password, email) => {
     return new Promise((resolve, reject) => {
         fetch(getApiUrl() + 'create-user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password, email })
         }).then(
             (response) => {
                 saveAuthResponseData(response, resolve, reject);
             },
             (err) => {
                 alert('err creating user ', err);
-                // todo: if 400 then resolve({isSuccess=false, isUserTaken})
+                // todo: if 400 then resolve({isSuccess=false, isUserTaken, isEmailTaken})
             }
         );
     });
