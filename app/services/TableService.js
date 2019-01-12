@@ -1,7 +1,4 @@
-
-export const getApiUrl = () => {
-    return 'https://poker-giver-api.herokuapp.com/';
-}
+import { getApiUrl } from './Constants';
 
 // todo: use pagination?
 export const getTables = () => {

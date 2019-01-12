@@ -1114,6 +1114,7 @@
                                 playerName: currentPlayer.name,
                                 buyInAmount: messageData.numberOfChips,
                                 token: 'somespecialtoken'// todo: get this from native app
+                                // todo: send token on all requests
                             }
                             gameSocket.send(JSON.stringify(gameJoinRequest));
                     // }
@@ -1121,29 +1122,6 @@
                         beginPing();
                     }
                });
-
-                // begin: test
-
-                // var messageData = {
-                //     player: {
-                //         id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-                //         name: 'Nick Redmond'
-                //     },
-                //     gameId: '73bf5cc7-70e3-4ed2-8766-8a2e47e6fc2a'
-                // }
-                //     currentPlayer = messageData.player;
-                    
-                //     gameSocket.onopen = function() {
-                //         var gameJoinRequest = {
-                //             action: 'joinGame',
-                //             gameId: messageData.gameId,
-                //             playerId: currentPlayer.id
-                //         }
-                //         gameSocket.send(JSON.stringify(gameJoinRequest));
-                //     }
-                //     beginListenForMessages();
-
-                // end: test
 
                 setUserActions();
 
