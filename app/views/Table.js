@@ -6,6 +6,7 @@ import {
     WebView, TextInput } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
+import { getUserToken, removeChips } from '../services/PlayerService';
 
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
@@ -65,15 +66,33 @@ export class Table extends React.Component {
             data = { numberOfChips: this.state.betAmount };
         }
 
-        // todo: save buy-in to server
         const player = this.state.player;
         player.numberOfChips -= this.state.betAmount;
+
+        getUserToken().then(
+            token => {
+                removeChips(this.state.betAmount, token).then(isSuccess => {
+                    if (isSuccess) {
+                        data.token = token;
+                        this.tableWebView.postMessage(JSON.stringify(data));
+                    }
+                    else {
+                        // todo: better error handling
+                        alert('Error buying into table.');
+                    }
+                })
+            },
+            () => {
+                // todo: better error handling
+                alert('Error reading device storage.');
+            }
+        );
+
         this.setState({
             isBoughtIn: true,
+            betAmount: 0,
             player
         });
-
-        this.tableWebView.postMessage(JSON.stringify(data));
     }
 
     buyIn = () => {

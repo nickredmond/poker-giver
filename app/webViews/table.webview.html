@@ -991,6 +991,8 @@
                 }
 
                 if (message.game) {
+                    isShowingLostHandButtons = false;
+
                     if (currentPlayerIndex === null) {
                         for (var i = 0; i < message.game.players.length && currentPlayerIndex === null; i++) {
                             if (message.game.players[i].name === currentPlayer.name) {
@@ -1003,6 +1005,9 @@
                         game = message.game;
                         handleShowCardsOrMuck();
                         handleUserButtons();
+                    }
+                    if (!isShowingLostHandButtons) { // gets set to true sometimes in handleshowcardsormuck
+                        hideLostHandButtons();
                     }
                 }
 
@@ -1054,6 +1059,7 @@
                 }
             }
 
+            var isShowingLostHandButtons = false;
             var handleShowCardsOrMuck = function() {
                 try {
                     var winningPlayers = game.players.filter(player => {
@@ -1069,6 +1075,7 @@
                     });
                     if (winningPlayers.length && !isCurrentPlayerWinner && game.players[currentPlayerIndex].card1) {
                         showLostHandButtons();
+                        isShowingLostHandButtons = true;
                     }
                 } catch (error) {
                     handleError(error);
@@ -1113,7 +1120,7 @@
                                 gameId: messageData.gameId,
                                 playerName: currentPlayer.name,
                                 buyInAmount: messageData.numberOfChips,
-                                token: 'somespecialtoken'// todo: get this from native app
+                                token: messageData.token
                                 // todo: send token on all requests
                             }
                             gameSocket.send(JSON.stringify(gameJoinRequest));

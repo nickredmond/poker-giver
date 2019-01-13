@@ -133,6 +133,27 @@ export const logIn = (username, password) => {
     });
 }
 
+export const removeChips = (numberOfChips, userToken) => {
+    return new Promise((resolve, reject) => {
+        fetch(getApiUrl() + 'player/removeChips', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ numberOfChips, token: userToken })
+        }).then(
+            response => {
+                if (response.ok) {
+                    resolve(true);
+                }
+                else {
+                    resolve(false);
+                }
+            }
+        );
+    });
+}
+
 export const getPlayerInfo = (isLocal) => {
     return new Promise((resolve, reject) => {
         AsyncStorage.getItem('player-name', (err, playerName) => {
