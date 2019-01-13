@@ -151,8 +151,8 @@ export class Login extends React.Component {
                 }
 
                 <View style={styles.formGroup}>
-                    <PokerGiverText textValue={'username'}></PokerGiverText>
-                    <TextInput onChangeText={(text) => this.setUsername(text)}></TextInput>
+                    <PokerGiverText style={styles.inputLabel} textValue={'username'}></PokerGiverText>
+                    <TextInput style={styles.input} onChangeText={(text) => this.setUsername(text)}></TextInput>
                 </View>
                 {
                     this.state.usernameError && 
@@ -162,8 +162,8 @@ export class Login extends React.Component {
                 {
                     this.state.isNewUser && 
                     <View style={styles.formGroup}>
-                        <PokerGiverText textValue={'email'}></PokerGiverText>
-                        <TextInput onChangeText={(text) => this.setEmail(text)}></TextInput>
+                        <PokerGiverText style={styles.inputLabel} textValue={'email'}></PokerGiverText>
+                        <TextInput style={styles.input} onChangeText={(text) => this.setEmail(text)}></TextInput>
                     </View>
                 }
                 {
@@ -172,8 +172,8 @@ export class Login extends React.Component {
                 }
 
                 <View style={styles.formGroup}>
-                    <PokerGiverText textValue={'password'}></PokerGiverText>
-                    <TextInput onChangeText={(text) => this.setPassword(text)}></TextInput>
+                    <PokerGiverText style={styles.inputLabel} textValue={'password'}></PokerGiverText>
+                    <TextInput style={styles.input} onChangeText={(text) => this.setPassword(text)}></TextInput>
                 </View>
                 {
                     this.state.passwordError && 
@@ -183,8 +183,8 @@ export class Login extends React.Component {
                 {
                     this.state.isNewUser && 
                     <View style={styles.formGroup}>
-                        <PokerGiverText textValue={'confirm password'}></PokerGiverText>
-                        <TextInput onChangeText={(text) => this.setConfirmPassword(text)}></TextInput>
+                        <PokerGiverText style={styles.inputLabel} textValue={'confirm password'}></PokerGiverText>
+                        <TextInput style={styles.input} onChangeText={(text) => this.setConfirmPassword(text)}></TextInput>
                     </View>
                 }
                 {
@@ -195,11 +195,11 @@ export class Login extends React.Component {
                 {
                     this.state.isNewUser && 
                     <View>
-                        <TouchableOpacity onPress={() => this.doSignUp()}>
-                            <Text>sign up</Text>
+                        <TouchableOpacity style={styles.button} onPress={() => this.doSignUp()}>
+                            <Text style={styles.buttonText}>sign up</Text>
                         </TouchableOpacity>
                         <View style={styles.formFooter}>
-                            <PokerGiverText textValue={'Already have an account?'}></PokerGiverText>
+                            <PokerGiverText style={styles.footerText} textValue={'Already have an account?'}></PokerGiverText>
                             <TouchableOpacity onPress={() => this.setNewUser(false)}>
                                 <PokerGiverText style={styles.link} textValue={'log in'}></PokerGiverText>
                             </TouchableOpacity>
@@ -209,11 +209,11 @@ export class Login extends React.Component {
                 {
                     !this.state.isNewUser && 
                     <View>
-                        <TouchableOpacity onPress={() => this.doLogIn()}>
-                            <Text>log in</Text>
+                        <TouchableOpacity style={styles.button} onPress={() => this.doLogIn()}>
+                            <Text style={styles.buttonText}>log in</Text>
                         </TouchableOpacity>
                         <View style={styles.formFooter}>
-                            <PokerGiverText textValue={'Never played before?'}></PokerGiverText>
+                            <PokerGiverText style={styles.footerText} textValue={'Never played before?'}></PokerGiverText>
                             <TouchableOpacity onPress={() => this.setNewUser(true)}>
                                 <PokerGiverText style={styles.link} textValue={'sign up'}></PokerGiverText>
                             </TouchableOpacity>
@@ -227,10 +227,14 @@ export class Login extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        color: 'white'
+        width: '80%',
+        paddingLeft: 10,
+        paddingRight: 10,
+        flex: 1
     },
     formGroup: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        marginBottom: 10
     },
     errorMessage: {
 
@@ -239,10 +243,35 @@ const styles = StyleSheet.create({
 
     },
     formFooter: {
+        marginTop: 10,
+        justifyContent: 'center',
         flexDirection: 'row'
     },
     link: {
         textDecorationLine: 'underline',
-        marginLeft: 5
+        marginLeft: 5,
+        fontSize: 16
+    },
+    input: {
+        backgroundColor: '#efefef',
+        flex: 2,
+        marginLeft: 10
+    },
+    button: {
+        backgroundColor: '#88FF88',
+        padding: 10,
+        marginLeft: '25%',
+        width: '50%',
+        marginTop: 25
+    },
+    buttonText: {
+        textAlign: 'center',
+        fontSize: 24
+    },
+    inputLabel: {
+        fontSize: 18
+    },
+    footerText: {
+        fontSize: 16
     }
 });
