@@ -49,6 +49,7 @@ export class Login extends React.Component {
     doLogIn = () => {
         this.clearPageError();
         if (this.isFormValid()) {
+            alert('loggin ins')
             logIn(this.state.username, this.state.password).then(
                 (response) => {
                     if (response.isSuccess) {
@@ -83,7 +84,7 @@ export class Login extends React.Component {
 
     setEmail = (email) => {
         if (email) {
-            const isValidEmail = EMAIL_PATTERN.test(email);
+            const isValidEmail = Login.EMAIL_PATTERN.test(email);
             if (isValidEmail) {
                 this.setState({ email, emailError: null });
             }
@@ -104,7 +105,7 @@ export class Login extends React.Component {
         if (password) {
             if (this.state.isNewUser) {
                 const minPasswordLength = 8;
-                if (password.length > minPasswordLength) {
+                if (password.length >= minPasswordLength) {
                     if (/[A-Za-z]/.test(password) && /[0-9]/.test(password)) {
                         this.setState({ password, passwordError: null });
                     }
@@ -129,8 +130,8 @@ export class Login extends React.Component {
     }
 
     setConfirmPassword = (confirmPassword) => {
-        if (password) {
-            if (password === confirmPassword) {
+        if (this.state.password) {
+            if (this.state.password === confirmPassword) {
                 this.setState({ confirmPassword, confirmPasswordError: null });
             }
             else {
@@ -173,23 +174,23 @@ export class Login extends React.Component {
 
                 <View style={styles.formGroup}>
                     <PokerGiverText style={styles.inputLabel} textValue={'password'}></PokerGiverText>
-                    <TextInput style={styles.input} onChangeText={(text) => this.setPassword(text)}></TextInput>
+                    <TextInput style={styles.input} secureTextEntry={true} onChangeText={(text) => this.setPassword(text)}></TextInput>
                 </View>
                 {
                     this.state.passwordError && 
-                    <Text style={styles.errorMessage} textValue={ this.state.passwordError }></Text>
+                    <Text style={styles.errorMessage}>{ this.state.passwordError }</Text>
                 }
 
                 {
                     this.state.isNewUser && 
                     <View style={styles.formGroup}>
                         <PokerGiverText style={styles.inputLabel} textValue={'confirm password'}></PokerGiverText>
-                        <TextInput style={styles.input} onChangeText={(text) => this.setConfirmPassword(text)}></TextInput>
+                        <TextInput style={styles.input} secureTextEntry={true} onChangeText={(text) => this.setConfirmPassword(text)}></TextInput>
                     </View>
                 }
                 {
                     (this.state.isNewUser && this.state.confirmPasswordError) && 
-                    <Text style={styles.errorMessage} textValue={ this.state.confirmPasswordError }></Text>
+                    <Text style={styles.errorMessage}>{ this.state.confirmPasswordError }</Text>
                 }
 
                 {
@@ -237,7 +238,9 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     errorMessage: {
-
+        color: '#FFAAAA',
+        marginBottom: 5,
+        fontSize: 16
     },
     pageErrorMessage: {
 
