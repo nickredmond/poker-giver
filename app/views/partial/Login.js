@@ -35,12 +35,18 @@ export class Login extends React.Component {
                     if (response.isSuccess) {
                         this.props.loggedIn();
                     }
+                    else if (response.playerAlreadyExists) {
+                        this.setPageError('Username is already taken.');
+                    }
+                    else if (response.isEmailTaken) {
+                        this.setPageError('Email is already taken.');
+                    }
                     else {
                         this.setPageError('There was a problem creating new user.');
                     }
                 },
-                (err) => {
-                    // display appropriate errors
+                () => {
+                    this.setPageError('There was a problem creating new user.');
                 }
             );
         }
@@ -49,26 +55,57 @@ export class Login extends React.Component {
     doLogIn = () => {
         this.clearPageError();
         if (this.isFormValid()) {
-            alert('loggin ins')
             logIn(this.state.username, this.state.password).then(
                 (response) => {
                     if (response.isSuccess) {
                         this.props.loggedIn();
                     }
+                    else if (response.playerExists) {
+                        this.setPageError('Password is incorrect.');
+                    }
                     else {
-                        this.setPageError('There was a problem logging in.');
+                        this.setPageError('Could not find user with that username.');
                     }
                 },
-                (err) => {
-                    // display appropriate errors
+                () => {
+                    this.setPageError('There was a problem logging in.');
                 }
             );
         }
     }
 
     isFormValid = () => {
-        return !(this.state.usernameError || this.state.emailError || 
+        var isValid = !(this.state.usernameError || this.state.emailError || 
             this.statepasswordError || this.state.confirmPasswordError);
+
+        if (isValid) {
+            isValid = this.state.username || false;
+            if (!isValid) {
+                this.setState({ usernameError: 'Username is required.' });
+            }
+        }
+        if (isValid) {
+            isValid = this.state.password || false;
+            if (!isValid) {
+                this.setState({ passwordError: 'Password is required.' });
+            }
+        }
+
+        if (isValid && this.state.isNewUser) {
+            isValid = this.state.email || false;
+            if (!isValid) {
+                this.setState({ emailError: 'Email is required.' });
+            }
+
+            if (isValid) {
+                isValid = this.state.confirmPassword || false;
+                if (!isValid) {
+                    this.setState({ confirmPasswordError: 'Confirm password is required.' });
+                }
+            }
+        }
+
+        return isValid;
     }
 
     setUsername = (username) => {
@@ -121,6 +158,9 @@ export class Login extends React.Component {
                     });
                 }
             }
+            else {
+                this.setState({ password, passwordError: null });
+            }
         }
         else {
             this.setState({
@@ -148,7 +188,7 @@ export class Login extends React.Component {
             <View style={styles.container}>
                 {
                     this.state.pageError && 
-                    <Text style={styles.pageErrorMessage} textValue={ this.state.pageError }></Text>
+                    <Text style={styles.pageErrorMessage}>{ this.state.pageError }</Text>
                 }
 
                 <View style={styles.formGroup}>
@@ -243,7 +283,14 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     pageErrorMessage: {
-
+        color: '#721c24',
+        marginBottom: 10,
+        padding: 10,
+        backgroundColor: '#f8d7da',
+        borderWidth: 2,
+        borderColor: '#f5c6cb',
+        borderRadius: 3,
+        textAlign: 'center'
     },
     formFooter: {
         marginTop: 10,

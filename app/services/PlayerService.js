@@ -16,19 +16,27 @@ export const authenticate = () => {
                     },
                     body: JSON.stringify({ token })
                 }).then(
-                    (response) => {
-                        AsyncStorage.setItem('user-token', response.refreshedToken, (err) => {
-                            if (err) {
-                                reject('Error using device storage.');
-                            }
-                            else {
-                                resolve(true);
-                            }
-                        });
-                    },
-                    (err) => {
-                        alert('err authing ', err);
-                        // todo: resolve(false) if 401 status, else reject
+                    response => {
+                        if (response.ok) {
+                            response.json().then(responseBody => {
+                                AsyncStorage.setItem('user-token', responseBody.refreshedToken, (err) => {
+                                    if (err) {
+                                        reject('Error using device storage.');
+                                    }
+                                    else {
+                                        resolve(true);
+                                    }
+                                });
+                            });
+                        }
+                        else if (response.status === 400 || response.status === 401) {
+                            response.json().then(err => {
+                                resolve(false);
+                            });
+                        }
+                        else {
+                            reject('Error while authenticating.');
+                        }
                     }
                 );
             }
@@ -73,12 +81,24 @@ export const createUser = (username, password, email) => {
             },
             body: JSON.stringify({ username, password, email })
         }).then(
-            (response) => {
-                saveAuthResponseData(userame, response, resolve, reject);
-            },
-            (err) => {
-                alert('err creating user ', err);
-                // todo: if 400 then resolve({isSuccess=false, isUserTaken, isEmailTaken})
+            response => {
+                if (response.ok) {
+                    response.json().then(responseBody => {
+                        saveAuthResponseData(username, responseBody, resolve, reject);
+                    });
+                }
+                else if (response.status === 400 || response.status === 401) {
+                    response.json().then(err => {
+                        resolve({ 
+                            isSuccess: false, 
+                            playerAlreadyExists: err.playerAlreadyExists,
+                            isEmailTaken: player.isEmailTaken
+                        });
+                    });
+                }
+                else {
+                    reject('Error while trying to create user.');
+                }
             }
         );
     });
@@ -93,13 +113,20 @@ export const logIn = (username, password) => {
             },
             body: JSON.stringify({ username, password })
         }).then(
-            (response) => {
-                saveAuthResponseData(username, response, resolve, reject);
-            },
-            (err) => {
-                alert('err logging in ', err);
-                // todo: if 400 then resolve({isSuccess=false, playerExists, invalidPassword})
-                // invalid password if 400 and !playerExists
+            response => {
+                if (response.ok) {
+                    response.json().then(responseBody => {
+                        saveAuthResponseData(username, responseBody, resolve, reject);
+                    });
+                }
+                else if (response.status === 400 || response.status === 401) {
+                    response.json().then(err => {
+                        resolve({ isSuccess: false, playerExists: err.playerExists });
+                    });
+                }
+                else {
+                    reject('Error while trying to log in.');
+                }
             }
         );
     });
