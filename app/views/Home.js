@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MainMenu } from './partial/MainMenu';
 import { Login } from './partial/Login';
-import { authenticate } from '../services/PlayerService';
+import { authenticate, getPlayerInfo } from '../services/PlayerService';
 
 export class Home extends React.Component {
     static navigationOptions = {
@@ -33,6 +33,18 @@ export class Home extends React.Component {
         this.setState({ isAuthenticated: true });
     }
 
+    goToTables = () => {
+        getPlayerInfo(true).then(playerInfo => {
+            const { navigate } = this.props.navigation;
+            navigate('TablesList',  {
+                player: {
+                    name: playerInfo.playerName,
+                    numberOfChips: playerInfo.numberOfChips
+                }
+            });
+        });
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -45,7 +57,7 @@ export class Home extends React.Component {
 
                 {
                     this.state.isAuthenticated && 
-                    <MainMenu></MainMenu>
+                    <MainMenu goToTables={this.goToTables}></MainMenu>
                 }
 
                 {

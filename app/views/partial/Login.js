@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-nativ
 import { PokerGiverText } from '../partial/PokerGiverText';
 import { logIn, createUser } from '../../services/PlayerService';
 
+var  EMAIL_PATTERN = /^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/g;
 export class Login extends React.Component {
     static navigationOptions = {
         header: null
     };
-    static EMAIL_PATTERN = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/g;
 
     constructor(props) {
         super(props);
@@ -109,6 +109,7 @@ export class Login extends React.Component {
         return isValid;
     }
 
+    // todo: username length limit
     setUsername = (username) => {
         if (username) {
             this.setState({ username, usernameError: null });
@@ -122,7 +123,7 @@ export class Login extends React.Component {
 
     setEmail = (email) => {
         if (email) {
-            const isValidEmail = Login.EMAIL_PATTERN.test(email);
+            const isValidEmail = EMAIL_PATTERN.test(email);
             if (isValidEmail) {
                 this.setState({ email, emailError: null });
             }

@@ -184,3 +184,16 @@ export const getPlayerInfo = (isLocal) => {
         })
     })
 }
+
+export const getUserToken = () => {
+    return new Promise((resolve, reject) => {
+        AsyncStorage.getItem('user-token', (err, token) => {
+            if (err) {
+                reject('Error reading values from device.');
+            }
+            else {
+                resolve(token);
+            }
+        });
+    })
+}

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { getTables } from '../services/TableService';
+import { getUserToken } from '../services/PlayerService';
+import { PokerGiverText } from './partial/PokerGiverText';
 
 export class TablesList extends React.Component {
     static navigationOptions = {
@@ -14,11 +16,13 @@ export class TablesList extends React.Component {
         this.state = {
             player: navigation.getParam('player')
         };
-        getTables()
-            .then(response => response.json())
-            .then(tables => {
-                this.setState({ tables });
-            });
+        getUserToken().then(token => {
+            getTables(token)
+                .then(response => response.json())
+                .then(tables => {
+                    this.setState({ tables });
+                });
+        })
     }
 
     getPlayersCountText = (table) => {
@@ -42,9 +46,9 @@ export class TablesList extends React.Component {
     renderList = ({ item: table }) => {
         return (
             // todo: search games to join by name
-            <TouchableOpacity style={styles.tableItem} onPress={() => this.selectedTable(table.gameId)}>
-                <Text>{ table.name }</Text>
-                <Text>{ this.getPlayersCountText(table) }</Text>
+            <TouchableOpacity style={[styles.tableItem, styles.button]} onPress={() => this.selectedTable(table.gameId)}>
+                <Text style={styles.buttonText}>{ table.name }</Text>
+                <Text style={[styles.buttonText, styles.playersCountText]}>{ this.getPlayersCountText(table) }</Text>
             </TouchableOpacity>
         )
     }
@@ -52,6 +56,7 @@ export class TablesList extends React.Component {
     render() {
         return (
             <View style={styles.container}>
+                <PokerGiverText style={styles.listHeader} textValue={'touch any game below to join:'}></PokerGiverText>
                 { 
                     this.state.tables && 
                     <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} /> 
@@ -63,12 +68,32 @@ export class TablesList extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-
+        flex: 1,
+        alignItems: 'center',
+        backgroundColor: '#222'
     },
     tableItem: {
         flexDirection: 'row'
     },
     tableList: {
 
+    },
+    button: {
+        backgroundColor: '#88FF88',
+        padding: 10,
+        marginBottom: 10,
+        marginLeft: '5%',
+        width: '90%'
+    },
+    buttonText: {
+        fontSize: 24
+    },
+    playersCountText: {
+        marginLeft: 'auto'
+    },
+    listHeader: {
+        fontSize: 18,
+        marginBottom: 5,
+        marginTop: 5
     }
 })

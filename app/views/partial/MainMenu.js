@@ -6,21 +6,14 @@ export class MainMenu extends React.Component {
         header: null
     };
 
-    goToTable = () => {
-        // todo: use player account info
-        this.navigate('TablesList',  {
-            player: {
-                id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-                name: 'Nick Redmond',
-                numberOfChips: 2000
-            }
-        });
+    goToTables = () => {
+        this.props.goToTables();
     }
 
     render() {
         return (
             <View style={styles.container}>
-                <TouchableOpacity style={styles.button} onPress={this.goToTable.bind()}>
+                <TouchableOpacity style={styles.button} onPress={this.goToTables.bind()}>
                     <Text style={styles.buttonText}>play now</Text>
                 </TouchableOpacity>
             </View>
@@ -33,10 +26,10 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     button: {
+        backgroundColor: '#88FF88',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingLeft: 10,
-        paddingRight: 10
+        padding: 10
     },
     buttonText: {
         fontSize: 22
