@@ -58,7 +58,8 @@ export const saveAuthResponseData = (username, response, resolve, reject) => {
                     reject('Error saving to device storage.');
                 }
                 else {
-                    AsyncStorage.setItem('number-of-chips', response.numberOfChips, (err) => {
+                    const numberOfChips = response.numberOfChips.toString();
+                    AsyncStorage.setItem('number-of-chips', numberOfChips, (err) => {
                         if (err) {
                             reject('Error saving to device storage.');
                         }

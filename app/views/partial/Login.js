@@ -52,6 +52,7 @@ export class Login extends React.Component {
         }
     }
 
+    // todo: spinner on login/signup until response is returned
     doLogIn = () => {
         this.clearPageError();
         if (this.isFormValid()) {

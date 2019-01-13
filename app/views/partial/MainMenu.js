@@ -6,6 +6,17 @@ export class MainMenu extends React.Component {
         header: null
     };
 
+    goToTable = () => {
+        // todo: use player account info
+        this.navigate('TablesList',  {
+            player: {
+                id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
+                name: 'Nick Redmond',
+                numberOfChips: 2000
+            }
+        });
+    }
+
     render() {
         return (
             <View style={styles.container}>

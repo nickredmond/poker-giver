@@ -29,17 +29,6 @@ export class Home extends React.Component {
         navigate(routeName, params);
     }
 
-    goToTable = () => {
-        // todo: use player account info
-        this.navigate('TablesList',  {
-            player: {
-                id: 'b3c1b8a9-9fdd-4a82-a12a-750542629b77',
-                name: 'Nick Redmond',
-                numberOfChips: 2000
-            }
-        });
-    }
-
     loggedIn = () => {
         this.setState({ isAuthenticated: true });
     }
