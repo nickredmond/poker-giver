@@ -1,32 +1,39 @@
 <html>
     <head></head>
     <body style="background-color: #dedede">
-        <div style="text-align: center">
-            <div id="message-container" onclick="messageBoxDropdownClick()">
-                <div id="message-box" class="message-box-container"></div>
-                <div id="message-box-dropdown-icon" class="arrow-down"></div>
+        <div id="game-area">
+            <div style="text-align: center">
+                <div id="message-container" onclick="messageBoxDropdownClick()">
+                    <div id="message-box" class="message-box-container"></div>
+                    <div id="message-box-dropdown-icon" class="arrow-down"></div>
+                </div>
+                <div id="message-list-box"></div>
             </div>
-            <div id="message-list-box"></div>
-        </div>
-        <div style="text-align: center">
-            <button id="button-call-check" class="game-button during-hand-button">none</button>
-            <button id="button-raise-bet" class="game-button during-hand-button">none</button>
-            <button id="button-fold" class="game-button during-hand-button">Fold</button>
-            <button id="button-show-cards" class="game-button after-hand-button">Show Cards</button>
-            <button id="button-muck" class="game-button after-hand-button">Muck</button>
-        </div>
-        <div id="flash-message" class="alert alert-info"></div>
-        <div id="flash-error" class="alert alert-danger"></div>
-        <div id="modal-overlay"></div>
-        <div id="bet-amount-dialog">
-            <p>Enter amount:</p>
-            <input id="bet-amount" type="number" />
-            <div id="bet-button-holder">
-                <button id="cancel-button" class="bet-dialog-button" onclick="hideBetAmountDialog()">Cancel</button>
-                <button id="bet-button" class="bet-dialog-button" onclick="onUserPlaceBet()">none</button>
+            <div style="text-align: center">
+                <button id="button-call-check" class="game-button during-hand-button">none</button>
+                <button id="button-raise-bet" class="game-button during-hand-button">none</button>
+                <button id="button-fold" class="game-button during-hand-button">Fold</button>
+                <button id="button-show-cards" class="game-button after-hand-button">Show Cards</button>
+                <button id="button-muck" class="game-button after-hand-button">Muck</button>
             </div>
+            <div id="flash-message" class="alert alert-info"></div>
+            <div id="flash-error" class="alert alert-danger"></div>
+            <div id="modal-overlay"></div>
+            <div id="bet-amount-dialog">
+                <p>Enter amount:</p>
+                <input id="bet-amount" type="number" />
+                <div id="bet-button-holder">
+                    <button id="cancel-button" class="bet-dialog-button" onclick="hideBetAmountDialog()">Cancel</button>
+                    <button id="bet-button" class="bet-dialog-button" onclick="onUserPlaceBet()">none</button>
+                </div>
+            </div>
+            <canvas id="tableCanvas" width="100%" height="100%"></canvas>
         </div>
-        <canvas id="tableCanvas" width="100%" height="100%"></canvas>
+        <div id="game-over-area" style="display: none;">
+            <p id="game-over-title">Game Over!</p>
+            <div id="game-over-message">Player "yoloswags" wins with 19403 chips.</div>
+            <div>Press back button to leave table.</div>
+        </div>
         <style>
             #tableCanvas {
                 margin-top: 0.5em;
@@ -180,6 +187,24 @@
                 color: #721c24;
                 background-color: #f8d7da;
                 border-color: #f5c6cb;
+            }
+
+            #game-over-area {
+                text-align: center;
+                background-color: #222;
+                border-radius: 5px;
+                padding-bottom: 2em;
+                padding-top: 0.75em;
+                color: #efefef;
+                font-family: Arial, sans-serif;
+                font-size: 1.5em;
+            }
+            #game-over-title {
+                font-size: 2em;
+                font-weight: bold;
+            }
+            #game-over-message {
+                margin-bottom: 1em;
             }
         </style>
 
@@ -987,6 +1012,16 @@
                                     matchingPlayers[0].numberOfChips += message.numberOfChips;
                                 }
                             }
+                            break;
+                        case 'gameOver':
+                            'game-area'
+                            var message = message.winningPlayerName === currentPlayer.name ?
+                                'You win with ' + message.numberOfChipsWon + ' chips.' : 
+                                'Player "' + message.winningPlayerName + '" wins with ' + message.numberOfChipsWon + ' chips.'; 
+                            document.getElementById('game-over-message').innerHTML = message;
+                            document.getElementById('game-area').style.display = 'none';
+                            document.getElementById('game-over-area').style.display = 'block';
+                            break;
                     }
                 }
 
