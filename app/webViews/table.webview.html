@@ -8,6 +8,7 @@
                     <div id="message-box-dropdown-icon" class="arrow-down"></div>
                 </div>
                 <div id="message-list-box"></div>
+                <button id="button-start-game" onclick="startGame()">Start Game</button>
             </div>
             <div style="text-align: center">
                 <button id="button-call-check" class="game-button during-hand-button">none</button>
@@ -205,6 +206,18 @@
             }
             #game-over-message {
                 margin-bottom: 1em;
+            }
+
+            #button-start-game {
+                width: 50%;
+                margin-left: 25%;
+                margin-top: 0.5em;
+                padding: 0.5em;
+                color: white;
+                font-size: 1.25em;
+                background-color: #117711;
+                display: none;
+                border: none;
             }
         </style>
 
@@ -1126,6 +1139,15 @@
                 };
                 gameSocket.send(JSON.stringify(addChipsRequest));
             }
+
+            var startGame = function() {
+                var startGameRquest = {
+                    action: 'startGame',
+                    gameId: messageData.gameId,
+                    token: messageData.token
+                };
+                gameSocket.send(JSON.stringify(startGameRquest));
+            }
         </script>
 
         <script>
@@ -1140,36 +1162,46 @@
 
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
-                    var messageData =  JSON.parse(event.data);
+                   try {
+                        var messageData =  JSON.parse(event.data);
 
-                    if (isBoughtIn) {
-                        sendAddChipsRequest(messageData.numberOfChips);
-                        displayFlashMessage(messageData.numberOfChips + ' chips will be added at the end of the round.');
-                    }
-                    else {
-                        isBoughtIn = true;
-                        currentPlayer = messageData.player;
-                    // gameSocket.onopen = function() {
-                            var gameJoinRequest = {
-                                action: 'joinGame',
-                                gameId: messageData.gameId,
-                                playerName: currentPlayer.name,
-                                buyInAmount: messageData.numberOfChips,
-                                token: messageData.token
-                                // todo: send token on all requests
+                        if (isBoughtIn) {
+                            sendAddChipsRequest(messageData.numberOfChips);
+                            displayFlashMessage(messageData.numberOfChips + ' chips will be added at the end of the round.');
+                        }
+                        else {
+                            isBoughtIn = true;
+                            currentPlayer = messageData.player;
+                        // gameSocket.onopen = function() {
+                                var gameJoinRequest = {
+                                    action: 'joinGame',
+                                    gameId: messageData.gameId,
+                                    playerName: currentPlayer.name,
+                                    buyInAmount: messageData.numberOfChips,
+                                    token: messageData.token
+                                    // todo: send token on all requests
+                                }
+                                gameSocket.send(JSON.stringify(gameJoinRequest));
+                        // }
+
+                            if (messageData.isAuthor) {
+                                var startGameButton = document.getElementById('button-start-game');
+                                startGameButton.style.display = 'block';
                             }
-                            gameSocket.send(JSON.stringify(gameJoinRequest));
-                    // }
-                        beginListenForMessages();
-                        beginPing();
-                    }
+
+                            beginListenForMessages();
+                            beginPing();
+                        }
+                   } catch (err) {
+                       setMessageText('Error joining game.');
+                   }
                });
 
                 setUserActions();
 
                 var canvas = document.getElementById('tableCanvas');
                 canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                canvas.height = window.innerHeight - 20;
                 var canvasRect = canvas.getBoundingClientRect();
 
                 loadSpritesConfig();

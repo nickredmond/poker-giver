@@ -210,3 +210,34 @@ export const getUserToken = () => {
         });
     })
 }
+
+export const isAuthorOfGame = (gameId) => {
+    return new Promise((resolve, reject) => {
+        getUserToken().then(
+            token => {
+                fetch(getApiUrl() + `player/start-game/${gameId}/is-authorized`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                }).then(response => {
+                    if (response.ok) {
+                        response.json().then(responseBody => {
+                            resolve({
+                                token,
+                                isAuthor: responseBody.isAuthorized
+                            });
+                        })
+                    }
+                    else {
+                        reject('Error authorizing user for game.');
+                    }
+                })
+            },
+            err => {
+                reject(err);
+            }
+        )
+    })
+}

@@ -50,7 +50,11 @@ export class TableCreate extends React.Component {
                     result => {
                         if (result.isSuccess) {
                             const { navigate } = this.props.navigation;
-                            navigate('Table', { tableName, gameId: result.gameId });
+                            navigate('Table', { 
+                                tableName, 
+                                gameId: result.gameId,
+                                isAuthor: true
+                            });
                         }
                         else if (result.isNameTaken) {
                             this.setState({ nameError: 'Table with that name already exists.' });

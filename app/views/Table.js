@@ -6,7 +6,7 @@ import {
     WebView, TextInput } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
-import { getUserToken, getPlayerInfo, removeChips } from '../services/PlayerService';
+import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
 
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
@@ -29,11 +29,13 @@ export class Table extends React.Component {
 
         const { navigation } = this.props;
         const gameId = navigation.getParam('gameId');
+        const isAuthor = navigation.getParam('isAuthor');
         getPlayerInfo().then(playerInfo => {
             this.setState({ 
                 player: playerInfo,
                 gameId, 
                 isModalVisible: true,
+                isAuthor: isAuthor || false,
                 betAmount: betAmountPlaceholder
             });
         });
@@ -62,17 +64,20 @@ export class Table extends React.Component {
             };
         }
         else {
-            data = { numberOfChips: this.state.betAmount };
+            data = { 
+                numberOfChips: this.state.betAmount
+            };
         }
 
         const player = this.state.player;
         player.numberOfChips -= this.state.betAmount;
 
-        getUserToken().then(
-            token => {
-                removeChips(this.state.betAmount, token).then(isSuccess => {
+        isAuthorOfGame(this.state.gameId).then(
+            result => {
+                removeChips(this.state.betAmount, result.token).then(isSuccess => {
                     if (isSuccess) {
-                        data.token = token;
+                        data.token = result.token;
+                        data.isAuthor = result.isAuthor;
                         this.tableWebView.postMessage(JSON.stringify(data));
                     }
                     else {
@@ -83,7 +88,7 @@ export class Table extends React.Component {
             },
             () => {
                 // todo: better error handling
-                alert('Error reading device storage.');
+                alert('Error buying into table.');
             }
         );
 
