@@ -26,7 +26,8 @@ export class Home extends React.Component {
 
     navigate = (routeName, params) => {
         const {navigate} = this.props.navigation;
-        navigate(routeName, params);
+        const navigationParams = params || null;
+        navigate(routeName, navigationParams);
     }
 
     loggedIn = () => {
@@ -34,15 +35,8 @@ export class Home extends React.Component {
     }
 
     goToTables = () => {
-        getPlayerInfo(true).then(playerInfo => {
-            const { navigate } = this.props.navigation;
-            navigate('TablesList',  {
-                player: {
-                    name: playerInfo.playerName,
-                    numberOfChips: playerInfo.numberOfChips
-                }
-            });
-        });
+        const { navigate } = this.props.navigation;
+        navigate('TablesList');
     }
 
     render() {

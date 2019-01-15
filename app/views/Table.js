@@ -6,16 +6,12 @@ import {
     WebView, TextInput } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
-import { getUserToken, removeChips } from '../services/PlayerService';
+import { getUserToken, getPlayerInfo, removeChips } from '../services/PlayerService';
 
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
 export class Table extends React.Component {
     static navigationOptions = {
-        headerTitle: (<View>
-            <Text>poker</Text>
-            <Text>giver</Text>
-        </View>),
         headerRight: (
             <Button 
                 onPress={() => self.toggleModal()}
@@ -26,18 +22,21 @@ export class Table extends React.Component {
 
     constructor(props) {
         super(props);
+        this.state = {};
+
         self = this;
         this.tableWebView = null;
 
         const { navigation } = this.props;
-        const player = navigation.getParam('player');
         const gameId = navigation.getParam('gameId');
-        this.state = { 
-            player, 
-            gameId, 
-            isModalVisible: true,
-            betAmount: betAmountPlaceholder
-        };
+        getPlayerInfo().then(playerInfo => {
+            this.setState({ 
+                player: playerInfo,
+                gameId, 
+                isModalVisible: true,
+                betAmount: betAmountPlaceholder
+            });
+        });
     }
 
     toggleModal = () => {

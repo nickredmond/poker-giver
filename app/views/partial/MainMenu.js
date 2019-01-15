@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { PokerGiverButton } from './PokerGiverButton';
 
 export class MainMenu extends React.Component {
     static navigationOptions = {
@@ -13,9 +14,10 @@ export class MainMenu extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <TouchableOpacity style={styles.button} onPress={this.goToTables.bind()}>
-                    <Text style={styles.buttonText}>play now</Text>
-                </TouchableOpacity>
+                <PokerGiverButton 
+                    onButtonPress={() => this.goToTables()} 
+                    buttonTitle={'play now'}>
+                </PokerGiverButton>
             </View>
         )
     }
@@ -24,14 +26,5 @@ export class MainMenu extends React.Component {
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center'
-    },
-    button: {
-        backgroundColor: '#88FF88',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 10
-    },
-    buttonText: {
-        fontSize: 22
     }
 });

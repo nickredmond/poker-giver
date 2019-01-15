@@ -543,7 +543,7 @@
                 circle(ctx, x, y, radius, color, outlineColor);
 
                 var isPlayerInSeat = players && players.length >= playerNumber;
-                var playerName = isPlayerInSeat ? players[playerNumber - 1].name : '[Empty]';
+                var playerName = isPlayerInSeat ? players[playerNumber - 1].name || 'N/A' : '[Empty]';
                 drawPlayerInfo(ctx, playerName, x, y + radius, 12);
                 if (isPlayerInSeat) {
                     var playerWorth = players[playerNumber - 1].numberOfChips || 0;

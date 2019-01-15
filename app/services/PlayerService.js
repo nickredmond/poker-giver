@@ -154,22 +154,11 @@ export const removeChips = (numberOfChips, userToken) => {
     });
 }
 
-export const getPlayerInfo = (isLocal) => {
+export const getPlayerInfo = () => {
     return new Promise((resolve, reject) => {
         AsyncStorage.getItem('player-name', (err, playerName) => {
             if (err) {
                 reject('Error reading from device storage.');
-            }
-            else if (isLocal) {
-                AsyncStorage.getItem('number-of-chips', (err, numberOfChips) => {
-                    if (err) {
-                        reject('Error reading from device storage.');    
-                    }
-                    else {
-                        const chipsCount = numberOfChips || 0;
-                        resolve({ playerName, numberOfChips: chipsCount });
-                    }
-                });
             }
             else {
                 AsyncStorage.getItem('user-token', (err, token) => {
@@ -183,22 +172,25 @@ export const getPlayerInfo = (isLocal) => {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({ token })
-                        }).then(
-                            (response) => {
-                                const chipsCount = response.numberOfChips || 0;
-                                AsyncStorage.setItem('number-of-chips', chipsCount, (err) => {
-                                    if (err) {
-                                        reject('Error reading from device storage.');
-                                    }
-                                    else {
-                                        resolve({ playerName, numberOfChips: chipsCount });
-                                    }
+                        }).then(response => {
+                            if (response.ok) {
+                                response.json().then(responseBody => {
+                                    const chipsCount = (responseBody.numberOfChips || 0).toString();
+                                    AsyncStorage.setItem('number-of-chips', chipsCount, (err) => {
+                                        if (err) {
+                                            reject('Error reading from device storage.');
+                                        }
+                                        else {
+                                            resolve({ playerName, numberOfChips: chipsCount });
+                                        }
+                                    })
                                 })
-                            }, 
-                            (err) => {
-                                reject('Error retrieving player info.');
                             }
-                        );
+                            else {
+                                //todo: better error handling
+                                alert('Error reading from device storage.');
+                            }
+                        });
                     }
                 });
             }

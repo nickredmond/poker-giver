@@ -18,10 +18,21 @@ import { createStackNavigator, createAppContainer } from 'react-navigation';
 import { Home } from './app/views/Home';
 import { Table } from './app/views/Table';
 import { TablesList } from './app/views/TablesList';
+import { TableCreate } from './app/views/TableCreate';
 
 const AppRoutes = createStackNavigator(
   {
-    Home, Table, TablesList
+    Home, TablesList, TableCreate,  
+    Table: {
+      screen: Table,
+      navigationOptions: ({ navigation }) => ({
+        title: `${
+          navigation.state.params.tableName.length > 16 ? 
+          navigation.state.params.tableName.substring(0, 16) + '...' :
+          navigation.state.params.tableName            
+        }`
+      })
+    }
   },
   {
     initialRouteName: 'Home'
