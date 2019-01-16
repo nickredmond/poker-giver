@@ -14,10 +14,15 @@ export class TablesList extends React.Component {
         title: 'Tables'
     };
 
-    constructor(props) {
-        super(props);
+    componentDidMount() {
+        const { navigation } = this.props;
+        navigation.addListener('willFocus', () => {
+            this.loadTablesList();
+        });
+    }
 
-        this.setState({ query: null });
+    loadTablesList = () => {
+        this.setState({ query: null, queryText: '' });
         setInterval(() => {
             this.searchGames();
         }, 333);
@@ -83,7 +88,7 @@ export class TablesList extends React.Component {
         }
     }
     setQuery = (query) => {
-        this.setState({ query });
+        this.setState({ query, queryText: query });
     }
     
     goToCreateTable = () => {
@@ -101,7 +106,10 @@ export class TablesList extends React.Component {
 
                 <View style={styles.queryContainer}>
                     <PokerGiverText style={styles.searchLabel} textValue={'Search'}></PokerGiverText>
-                    <TextInput style={styles.searchBar} onChangeText={text => this.setQuery(text)}>
+                    <TextInput 
+                        style={styles.searchBar} 
+                        value={this.state ? this.state.queryText || '' : ''}
+                        onChangeText={text => this.setQuery(text)}>
                     </TextInput>
                 </View>
                 {
