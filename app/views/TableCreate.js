@@ -99,7 +99,7 @@ export class TableCreate extends React.Component {
                     <View style={styles.numberChanger}>
                         {
                             this.state.numberOfPlayers > 2 && this.state.numberOfPlayers > this.state.numberOfAiPlayers + 1 &&
-                            <Button onPress={() => this.decrementPlayers()} title='-'></Button>
+                            <Button onPress={() => this.decrementPlayers()} title='  -  '></Button>
                         }
                         <PokerGiverText 
                             textValue={this.state.numberOfPlayers}
@@ -107,16 +107,16 @@ export class TableCreate extends React.Component {
                         </PokerGiverText>
                         {
                             this.state.numberOfPlayers < 8 && 
-                            <Button onPress={() => this.incrementPlayers()} title='+'></Button>
+                            <Button onPress={() => this.incrementPlayers()} title='  +  '></Button>
                         }
                     </View>
                 </View>
-                <View style={styles.numberFormGroup}>
+                <View style={[styles.numberFormGroup, styles.aiFormGroup]}>
                     <PokerGiverText textValue={'# AI Players'}></PokerGiverText>
                     <View style={styles.numberChanger}>
                         {
                             this.state.numberOfAiPlayers > 0 &&
-                            <Button onPress={() => this.decrementAiPlayers()} title='-'></Button>
+                            <Button onPress={() => this.decrementAiPlayers()} title='  -  '></Button>
                         }
                         <PokerGiverText 
                             textValue={this.state.numberOfAiPlayers}
@@ -124,7 +124,7 @@ export class TableCreate extends React.Component {
                         </PokerGiverText>
                         {
                             this.state.numberOfAiPlayers < this.state.numberOfPlayers - 1 &&
-                            <Button onPress={() => this.incrementAiPlayers()} title='+'></Button>
+                            <Button onPress={() => this.incrementAiPlayers()} title='  +  '></Button>
                         }
                     </View>
                 </View>
@@ -176,6 +176,10 @@ const styles = StyleSheet.create({
     },
     playersCountText: {
         fontSize: 28,
-        padding: 10
+        paddingLeft: 25,
+        paddingRight: 25
+    },
+    aiFormGroup: {
+        paddingBottom: 20
     }
 });
