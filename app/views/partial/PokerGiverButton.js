@@ -18,13 +18,13 @@ export class PokerGiverButton extends React.Component {
 export const styles = StyleSheet.create({
     createTableButton: {
         backgroundColor: '#117711',
-        padding: 15,
+        padding: 10,
         marginBottom: 20,
         width: '50%'
     },
     createTableButtonText: {
         color: '#efefef',
         textAlign: 'center',
-        fontSize: 28
+        fontSize: 26
     }
 });

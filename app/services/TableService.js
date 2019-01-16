@@ -1,14 +1,14 @@
 import { getApiUrl } from './Constants';
 
 // todo: use pagination?
-export const getTables = (token) => {
+export const getTables = (token, query) => {
     return new Promise((resolve, reject) => {
         fetch(getApiUrl() + 'tables', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token, query: query || null })
         })
         .then(response => {
             if (response.ok) {

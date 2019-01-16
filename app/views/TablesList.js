@@ -1,5 +1,9 @@
 import React from 'react';
-import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { 
+    View, FlatList, TextInput, 
+    TouchableOpacity, Text, StyleSheet,
+    ActivityIndicator
+} from 'react-native';
 import { getTables } from '../services/TableService';
 import { getUserToken } from '../services/PlayerService';
 import { PokerGiverText } from './partial/PokerGiverText';
@@ -12,6 +16,11 @@ export class TablesList extends React.Component {
 
     constructor(props) {
         super(props);
+
+        this.setState({ query: null });
+        setInterval(() => {
+            this.searchGames();
+        }, 333);
 
         getUserToken().then(token => {
             getTables(token).then(
@@ -42,12 +51,39 @@ export class TablesList extends React.Component {
 
     renderList = ({ item: table }) => {
         return (
-            // todo: search games to join by name
             <TouchableOpacity style={[styles.tableItem, styles.button]} onPress={() => this.selectedTable(table.name, table.gameId)}>
                 <Text style={styles.buttonText}>{ table.name }</Text>
                 <Text style={[styles.buttonText, styles.playersCountText]}>{ this.getPlayersCountText(table) }</Text>
             </TouchableOpacity>
         )
+    }
+
+    searchGames = () => {
+        if (this.state.query || this.state.query === '') {
+            const query = this.state.query || null;
+            this.setState({ query: null, isSearching: true });
+            getUserToken().then(token => {  
+                getTables(token, query).then(
+                    result => {
+                        let tables = [];
+                        if (result.isSuccess) {
+                            tables = result.tables || [];
+                        }
+                        else {
+                            alert('There was a problem searching tables.');
+                        }
+                        this.setState({ tables, isSearching: false });
+                    },
+                    () => {
+                        this.setState({ isSearching: false });  
+                        alert('There was a problem searching tables.');   
+                    }
+                )
+            });
+        }
+    }
+    setQuery = (query) => {
+        this.setState({ query });
     }
     
     goToCreateTable = () => {
@@ -58,15 +94,30 @@ export class TablesList extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <PokerGiverText style={styles.listHeader} textValue={'touch any game below to join:'}></PokerGiverText>
-                { 
-                    this.state && this.state.tables && 
-                    <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} /> 
-                }
                 <PokerGiverButton 
                     onButtonPress={() => this.goToCreateTable()} 
                     buttonTitle={'create table'}>
                 </PokerGiverButton>
+
+                <View style={styles.queryContainer}>
+                    <PokerGiverText style={styles.searchLabel} textValue={'Search'}></PokerGiverText>
+                    <TextInput style={styles.searchBar} onChangeText={text => this.setQuery(text)}>
+                    </TextInput>
+                </View>
+                {
+                    this.state && this.state.isSearching && 
+                    <View style={styles.loadingView}>
+                        <ActivityIndicator style={styles.loadingSpinner} size='large' color='#88FF88' />
+                        <PokerGiverText style={styles.loadingText} textValue={'Loading...'}></PokerGiverText>
+                    </View>
+                }
+                { 
+                    this.state && !this.state.isSearching && this.state.tables && 
+                    <View style={styles.tablesListContainer}>
+                        <PokerGiverText style={styles.listHeader} textValue={'touch any game below to join:'}></PokerGiverText>
+                        <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} /> 
+                    </View>
+                }
             </View>
         )
     }
@@ -76,13 +127,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        backgroundColor: '#222'
+        backgroundColor: '#222',
+        paddingTop: 20
     },
     tableItem: {
         flexDirection: 'row'
     },
     tableList: {
-
     },
     button: {
         backgroundColor: '#88FF88',
@@ -99,6 +150,36 @@ const styles = StyleSheet.create({
     },
     listHeader: {
         fontSize: 18,
-        marginTop: 5
+        marginTop: 5,
+        textAlign: 'center',
+        marginBottom: 10
+    },
+    searchBar: {
+        flex: 1,
+        marginLeft: 5,
+        backgroundColor: 'white',
+        padding: 2
+    },
+    queryContainer: {
+        flexDirection: 'row',
+        paddingLeft: 15,
+        paddingRight: 15
+    },
+    tablesListContainer: {
+        height: '75%',
+        alignItems: 'center',
+        paddingTop: 10
+    },
+    loadingView: {
+        marginTop: 25,
+        marginBottom: 25,
+        padding: 10
+    },
+    loadingText: {
+        fontSize: 18
+    },
+    searchLabel: {
+        fontSize: 16,
+        paddingTop: 5
     }
 })
