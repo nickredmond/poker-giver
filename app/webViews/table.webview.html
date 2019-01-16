@@ -1027,13 +1027,18 @@
                             }
                             break;
                         case 'gameOver':
-                            'game-area'
                             var message = message.winningPlayerName === currentPlayer.name ?
                                 'You win with ' + message.numberOfChipsWon + ' chips.' : 
                                 'Player "' + message.winningPlayerName + '" wins with ' + message.numberOfChipsWon + ' chips.'; 
                             document.getElementById('game-over-message').innerHTML = message;
                             document.getElementById('game-area').style.display = 'none';
                             document.getElementById('game-over-area').style.display = 'block';
+                            break;
+                        case 'joinGame': 
+                           if (message.playerName !== currentPlayer.name) {
+                                var message = 'Player "' + message.playerName + '" has joined the game.';
+                                displayFlashMessage(message);
+                           }
                             break;
                     }
                 }
@@ -1090,7 +1095,7 @@
                     }).length > 0;
 
                     var nextPlayer = game.players[game.currentTurnIndex];
-                    if (!isHandOver && !nextPlayer.isOut && nextPlayer.name === currentPlayer.name) {
+                    if (nextPlayer && !isHandOver && !nextPlayer.isOut && nextPlayer.name === currentPlayer.name) {
                         showCallCheckButton();
                         showRaiseBetButton();
                         showFoldButton();
@@ -1143,10 +1148,11 @@
             var startGame = function() {
                 var startGameRquest = {
                     action: 'startGame',
-                    gameId: messageData.gameId,
-                    token: messageData.token
+                    gameId: game.id,
+                    token: currentUserToken
                 };
                 gameSocket.send(JSON.stringify(startGameRquest));
+                document.getElementById('button-start-game').style.display = 'none';
             }
         </script>
 
@@ -1156,6 +1162,7 @@
             var currentPlayerIndex = null;
             var gameSocket = null;
             var isBoughtIn = false;
+            var currentUserToken = null; // todo: move to local storage or something?
 
             window.onload = function() {
                 gameSocket = new WebSocket('ws://poker-giver.herokuapp.com/');
@@ -1163,6 +1170,8 @@
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
                    try {
+                       currentPlayerIndex = null;
+                       game = null;
                         var messageData =  JSON.parse(event.data);
 
                         if (isBoughtIn) {
@@ -1180,7 +1189,8 @@
                                     buyInAmount: messageData.numberOfChips,
                                     token: messageData.token
                                     // todo: send token on all requests
-                                }
+                                };
+                                currentUserToken = messageData.token;
                                 gameSocket.send(JSON.stringify(gameJoinRequest));
                         // }
 

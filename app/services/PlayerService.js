@@ -181,7 +181,7 @@ export const getPlayerInfo = () => {
                                             reject('Error reading from device storage.');
                                         }
                                         else {
-                                            resolve({ playerName, numberOfChips: chipsCount });
+                                            resolve({ name: playerName, numberOfChips: chipsCount });
                                         }
                                     })
                                 })
