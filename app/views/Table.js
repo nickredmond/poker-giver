@@ -112,7 +112,6 @@ export class Table extends React.Component {
             updatedState.doesBetExceedChipsCount = true;
         }
         else {
-            updatedState.betAmount = this.state.betAmount;
             this.toggleModal();
             
             if (this.tableWebView) {
