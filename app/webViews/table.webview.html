@@ -830,13 +830,20 @@
             }
 
             var sendUserAction = function(actionType, actionAmount) {
-                gameSocket.send(JSON.stringify({
+                var actionRequest = {
                     action: 'userAction',
                     actionType: actionType,
                     actionAmount: actionAmount,
-                    gameId: game.id,
-                    playerName: currentPlayer.name
-                })); 
+                    gameId: game.id
+                };
+                if (actionType === 'showCards') {
+                    actionRequest.handId = game.handId;
+                    actionRequest.token = currentUserToken;
+                }
+                else {
+                    actionRequest.playerName = currentPlayer.name
+                }
+                gameSocket.send(JSON.stringify(actionRequest)); 
             }
 
             // if turn option is betting vs raising
@@ -977,7 +984,6 @@
                             try{
                                 if (index === 2) {
                                     game = updatedGame;
-                                    handleUserButtons();
                                 }
                                 else {
                                     game.cardsOnTable.push(updatedGame.cardsOnTable[index]);
@@ -1170,8 +1176,6 @@
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
                    try {
-                       currentPlayerIndex = null;
-                       game = null;
                         var messageData =  JSON.parse(event.data);
 
                         if (isBoughtIn) {
@@ -1179,6 +1183,8 @@
                             displayFlashMessage(messageData.numberOfChips + ' chips will be added at the end of the round.');
                         }
                         else {
+                            currentPlayerIndex = null;
+                            game = null;
                             isBoughtIn = true;
                             currentPlayer = messageData.player;
                         // gameSocket.onopen = function() {
@@ -1203,6 +1209,7 @@
                             beginPing();
                         }
                    } catch (err) {
+                       alert('capture it ' + err.name + err.message + err.stack)
                        setMessageText('Error joining game.');
                    }
                });
