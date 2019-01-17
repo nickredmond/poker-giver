@@ -54,27 +54,25 @@ export class Table extends React.Component {
         this.toggleModal();
     }
 
-    addChips = () => {
+    addChips = (numberOfChips) => {
         let data;
         if (!this.state.isBoughtIn) {
             data = { 
                 player: this.state.player, 
                 gameId: this.state.gameId,
-                numberOfChips: this.state.betAmount
+                numberOfChips
             };
         }
         else {
-            data = { 
-                numberOfChips: this.state.betAmount
-            };
+            data = { numberOfChips };
         }
 
         const player = this.state.player;
-        player.numberOfChips -= this.state.betAmount;
+        player.numberOfChips -= numberOfChips;
 
         isAuthorOfGame(this.state.gameId).then(
             result => {
-                removeChips(this.state.betAmount, result.token).then(isSuccess => {
+                removeChips(numberOfChips, result.token).then(isSuccess => {
                     if (isSuccess) {
                         data.token = result.token;
                         data.isAuthor = result.isAuthor;
@@ -115,7 +113,7 @@ export class Table extends React.Component {
             this.toggleModal();
             
             if (this.tableWebView) {
-                this.addChips();
+                this.addChips(this.state.betAmount);
             }
             else {
                 const interval = setInterval(() => {
