@@ -952,7 +952,7 @@
                 ctx.font = '28px Arial';
                 ctx.fillStyle = 'black';
                 var numberOfSecondsRemaining = Math.ceil(currentTurnTimer / totalTurnTime * 30);
-                ctx.fillText(numberOfSecondsRemaining, x + (barWidth / 2) - 10, y + 25);
+                ctx.fillText(numberOfSecondsRemaining, x + (barWidth / 2) - 15, y + 30);
 
                 if (currentTurnTimer <= 0) {
                     isTimeElapsed = true;
