@@ -829,21 +829,25 @@
                 }
             }
 
-            var sendUserAction = function(actionType, actionAmount) {
-                var actionRequest = {
-                    action: 'userAction',
-                    actionType: actionType,
-                    actionAmount: actionAmount,
-                    gameId: game.id
-                };
-                if (actionType === 'showCards') {
-                    actionRequest.handId = game.handId;
-                    actionRequest.token = currentUserToken;
+            var sendUserAction = function(actionType, actionAmount, isAutoFold) {
+                if (isAutoFold || (!isTimeElapsed && isWaitingForUserAction)) {
+                    var actionRequest = {
+                        action: 'userAction',
+                        actionType: actionType,
+                        actionAmount: actionAmount,
+                        gameId: game.id
+                    };
+                    if (actionType === 'showCards') {
+                        actionRequest.handId = game.handId;
+                        actionRequest.token = currentUserToken;
+                    }
+                    else {
+                        actionRequest.playerName = currentPlayer.name
+                    }
+                    gameSocket.send(JSON.stringify(actionRequest)); 
+
+                    endTurnTimer();
                 }
-                else {
-                    actionRequest.playerName = currentPlayer.name
-                }
-                gameSocket.send(JSON.stringify(actionRequest)); 
             }
 
             // if turn option is betting vs raising
@@ -896,7 +900,67 @@
 
         <!-- Base logic function (draw, update) -->
         <script>
-            var draw = function(canvas) {
+            var isWaitingForUserAction = false;
+            var update = function(millisElapsed) {
+                if (isTimeElapsed) {
+                    isTimeElapsed = false;
+                    currentTurnTimer = 0;
+                    if (turnTimerInterval) {
+                        clearInterval(turnTimerInterval);
+                    }
+
+                    if (isWaitingForUserAction) {
+                        isWaitingForUserAction = false;
+                        hideButtons();
+                        displayErrorMessage('Time up! Your hand has been folded.');
+                        var isAutoFold = true;
+                        sendUserAction('fold', 0, isAutoFold);
+                    }
+                }
+            }
+            
+            var drawTurnTimer = function(ctx, canvas, millisElapsed) {
+                currentTurnTimer -= millisElapsed;
+
+                var x = canvas.width * 0.05;
+                var width = canvas.width * 0.2;
+                var height = canvas.width * 0.3; 
+                var y = canvas.height * 0.6 + height + 10;
+                barWidth = x + (2 * width) - 25;
+
+                var turnRatioRemaining = (currentTurnTimer / totalTurnTime);
+                var turnRatioPassed = 1 - turnRatioRemaining;
+                var currentBarWidth = barWidth * turnRatioRemaining;
+                var adjustedX = x + (turnRatioPassed / 2) * barWidth - 10;
+
+                var halfTurnTime = totalTurnTime / 2;
+                var timePassed = totalTurnTime - currentTurnTimer;
+                var timePastHalf = Math.max(0, timePassed - halfTurnTime);
+
+                var redRatio = Math.min(1, timePassed / halfTurnTime);
+                var r = Math.ceil(255 * redRatio);
+                
+                var greenRatio = timePastHalf > 0 ? 1 - (timePastHalf / halfTurnTime) : 1;
+                var g = Math.ceil(255 * greenRatio);
+
+                var barWidthAddition = 20 * turnRatioPassed;
+                currentBarWidth += barWidthAddition;
+
+                ctx.fillStyle = 'rgb(' + r + ', ' + g + ', 0)';
+                ctx.fillRect(adjustedX, y, currentBarWidth, 5);
+
+                ctx.font = '28px Arial';
+                ctx.fillStyle = 'black';
+                var numberOfSecondsRemaining = Math.ceil(currentTurnTimer / totalTurnTime * 30);
+                ctx.fillText(numberOfSecondsRemaining, x + (barWidth / 2) - 10, y + 25);
+
+                if (currentTurnTimer <= 0) {
+                    isTimeElapsed = true;
+                }
+            }
+
+            var isWaitingForTurnTimer = false;
+            var draw = function(canvas, millisElapsed) {
                 try {
                     var ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -912,11 +976,20 @@
                     if (currentPlayerIndex === 0 || currentPlayerIndex) {
                         drawUserHand(ctx, canvas);
                     }
+                    if (currentTurnTimer > 0) {
+                        drawTurnTimer(ctx, canvas, millisElapsed);
+                    }
 
                     if (areBlindsSet()) {
                         drawBlinds(ctx, tableX, tableY, tableWidth, tableHeight);
                     }
                     drawPlayerHands(ctx, tableX, tableY, tableWidth, tableHeight);
+
+                    if (isWaitingForTurnTimer) {
+                        isWaitingForTurnTimer = false;
+                        var turnTimeInSeconds = 30;
+                        startTurnTimer(ctx, millisElapsed, canvas, 30);
+                    }
 
                     drawCardsOnTable(ctx, tableX, tableY, tableWidth, tableHeight);
                     var potAmount = game.currentPotAmount || 0;
@@ -1105,7 +1178,11 @@
                         showCallCheckButton();
                         showRaiseBetButton();
                         showFoldButton();
+                        isWaitingForUserAction = true;
                         
+                        if (!turnTimerInterval) {
+                            isWaitingForTurnTimer = true;
+                        }
                         if (!userOutlineInterval) {
                             animateUserOutline();
                         }
@@ -1115,6 +1192,24 @@
                     }
                 } catch (error) {
                     handleError(error);
+                }
+            }
+
+            var currentTurnTimer = 0; // in millis
+            var totalTurnTime = 0;
+            var turnTimerInterval = null;
+            var isTimeElapsed = false;
+            var barWidth = 0;
+            var startTurnTimer = function(ctx, millisElapsed, canvas, turnTimeInSeconds) {
+                // x + 2w - 15
+                isTimeElapsed = false;
+                currentTurnTimer = totalTurnTime = turnTimeInSeconds * 1000;
+            }
+            var endTurnTimer = function() {
+                currentTurnTimer = 0;
+                totalTurnTime = 0;
+                if (turnTimerInterval) {
+                    clearInterval(turnTimerInterval);
                 }
             }
 
@@ -1225,11 +1320,13 @@
                 loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
                 loadDialogs(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
 
+                var millisElapsed = 1000 / 24;
                 setInterval(function() {
                     if (game && currentPlayer) {
-                        draw(canvas);
+                        update(millisElapsed);
+                        draw(canvas, millisElapsed);
                     }
-                }, 1000 / 24);
+                }, millisElapsed);
 
                 setMessageText("Joining table...");
             }
