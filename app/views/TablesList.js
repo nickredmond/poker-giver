@@ -54,10 +54,14 @@ export class TablesList extends React.Component {
         navigate('Table', { tableName, gameId });
     }
 
+    getTableName = (table) => {
+        return (table.name && table.name.length > 25) ? table.name.substring(0, 25) + '...' : table.name;
+    }
+
     renderList = ({ item: table }) => {
         return (
             <TouchableOpacity style={[styles.tableItem, styles.button]} onPress={() => this.selectedTable(table.name, table.gameId)}>
-                <Text style={styles.buttonText}>{ table.name }</Text>
+                <Text style={styles.buttonText}>{ this.getTableName(table) }</Text>
                 <Text style={[styles.buttonText, styles.playersCountText]}>{ this.getPlayersCountText(table) }</Text>
             </TouchableOpacity>
         )
