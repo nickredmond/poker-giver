@@ -38,6 +38,10 @@ export class Home extends React.Component {
         const { navigate } = this.props.navigation;
         navigate('TablesList');
     }
+    goToRankings = () => {
+        const { navigate } = this.props.navigation;
+        navigate('Rankings');
+    }
 
     render() {
         return (
@@ -51,7 +55,7 @@ export class Home extends React.Component {
 
                 {
                     this.state.isAuthenticated && 
-                    <MainMenu goToTables={this.goToTables}></MainMenu>
+                    <MainMenu goToTables={this.goToTables} goToRankings={this.goToRankings}></MainMenu>
                 }
 
                 {

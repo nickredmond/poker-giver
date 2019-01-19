@@ -241,3 +241,32 @@ export const isAuthorOfGame = (gameId) => {
         )
     })
 }
+
+// rankingType=['month', 'week'], timeType=['current', 'last']
+export const getRankings = (rankingType, timeType) => {
+    return new Promise((resolve, reject) => {
+        getUserToken().then(
+            token => {
+                fetch(getApiUrl() + `rankings/${rankingType}/${timeType}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                }).then(response => {
+                    if (response.ok) {
+                        response.json().then(responseBody => {
+                            resolve(responseBody);
+                        })
+                    }
+                    else {
+                        reject('Error getting rankings.');
+                    }
+                })
+            },
+            err => {
+                reject(err);
+            }
+        )
+    })
+}

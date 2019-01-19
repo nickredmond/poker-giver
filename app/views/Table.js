@@ -4,7 +4,6 @@ import {
     View, TouchableOpacity, Button, 
     Text, StyleSheet, Dimensions, 
     WebView, TextInput } from 'react-native';
-import { Entypo } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
 

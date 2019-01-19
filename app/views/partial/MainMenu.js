@@ -10,6 +10,9 @@ export class MainMenu extends React.Component {
     goToTables = () => {
         this.props.goToTables();
     }
+    goToRankings = () => {
+        this.props.goToRankings();
+    }
 
     render() {
         return (
@@ -17,6 +20,10 @@ export class MainMenu extends React.Component {
                 <PokerGiverButton 
                     onButtonPress={() => this.goToTables()} 
                     buttonTitle={'play now'}>
+                </PokerGiverButton>
+                <PokerGiverButton 
+                    onButtonPress={() => this.goToRankings()} 
+                    buttonTitle={'rankings'}>
                 </PokerGiverButton>
             </View>
         )

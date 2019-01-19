@@ -19,10 +19,11 @@ import { Home } from './app/views/Home';
 import { Table } from './app/views/Table';
 import { TablesList } from './app/views/TablesList';
 import { TableCreate } from './app/views/TableCreate';
+import { Rankings } from './app/views/Rankings';
 
 const AppRoutes = createStackNavigator(
   {
-    Home, TablesList, TableCreate,  
+    Home, TablesList, TableCreate, Rankings, 
     Table: {
       screen: Table,
       navigationOptions: ({ navigation }) => ({
