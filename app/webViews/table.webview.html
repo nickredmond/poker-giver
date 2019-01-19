@@ -1105,6 +1105,9 @@
                                 }
                             }
                             break;
+                        case 'playerLeft':
+                            displayFlashMessage('Player "' + message.playerName + '" has left the game.');
+                            break;
                         case 'gameOver':
                             var message = message.winningPlayerName === currentPlayer.name ?
                                 'You win with ' + message.numberOfChipsWon + ' chips.' : 
@@ -1267,6 +1270,7 @@
 
             window.onload = function() {
                 gameSocket = new WebSocket('ws://poker-giver.herokuapp.com/');
+                beginPing();
 
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
@@ -1301,7 +1305,6 @@
                             }
 
                             beginListenForMessages();
-                            beginPing();
                         }
                    } catch (err) {
                        alert('capture it ' + err.name + err.message + err.stack)
