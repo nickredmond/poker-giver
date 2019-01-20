@@ -1,16 +1,30 @@
 import React from 'react';
 import  Canvas  from 'react-native-canvas';
 import { 
-    View, TouchableOpacity, Button, 
+    View, TouchableOpacity, TouchableHighlight, Button, 
     Text, StyleSheet, Dimensions, 
-    WebView, TextInput } from 'react-native';
+    WebView, TextInput, BackHandler } from 'react-native';
 import Modal from 'react-native-modal';
+import { Entypo } from '@expo/vector-icons';
 import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
+
+const headerStyles = StyleSheet.create({
+    buttonIcon: {
+        fontSize: 48,
+        color: '#444',
+        marginBottom: 10
+    }
+})
 
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
 export class Table extends React.Component {
     static navigationOptions = {
+        headerLeft: (
+            <TouchableHighlight onPress={() => self.backPressed()}>
+                <Entypo name='chevron-left' style={headerStyles.buttonIcon} />
+            </TouchableHighlight>
+        ),
         headerRight: (
             <Button 
                 onPress={() => self.toggleModal()}
@@ -38,6 +52,18 @@ export class Table extends React.Component {
                 betAmount: betAmountPlaceholder
             });
         });
+    }
+
+    componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', this.backPressed);
+    }
+    componentWillUnmount() {
+        BackHandler.removeEventListener('hardwareBackPress', this.backPressed);
+    }
+
+    backPressed = () => {
+        this.setState({ isGoingBack: true });
+        return true; // prevents navigating back automatically
     }
 
     toggleModal = () => {
@@ -136,6 +162,14 @@ export class Table extends React.Component {
         this.setState({ betAmount: '' })
     }
 
+    cancelLeaveTable = () => {
+        this.setState({ isGoingBack: false });
+    }
+    leaveTable = () => {
+        const { navigate } = this.props.navigation;
+        navigate('TablesList')
+    }
+
     render() {
         //const availableChipsCount = ;
 
@@ -174,6 +208,26 @@ export class Table extends React.Component {
                         </View>
                     </View>
                 </Modal>
+
+                <Modal isVisible={this.state.isGoingBack}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Leave Table</Text>
+                    </View>
+                    <View style={styles.addChipsModal}>
+                        <Text style={styles.availableChipsLabel}>Are you sure you want to leave?</Text>
+                        <Text style={styles.leaveTableText}>Don't worry, your chips will be refunded, besides any bets you've already placed.</Text>
+
+                        <View style={styles.buttonsRow}>
+                            <TouchableOpacity style={styles.buttonInfo} onPress={() => this.cancelLeaveTable()}>
+                                <Text style={[styles.buttonText, styles.dialogButton]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.buttonLeaveTable} onPress={() => this.leaveTable()}>
+                                <Text style={[styles.buttonText, styles.dialogButton]}>Leave</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+                
                 <WebView 
                     style={styles.canvas} source={require('../webViews/table.webview.html')} 
                     ref={(webView) => this.tableWebView = webView} />
@@ -213,6 +267,11 @@ const styles = StyleSheet.create({
     availableChipsLabel: {
         fontSize: 24
     },
+    leaveTableText: {
+        fontSize: 18,
+        marginTop: 10,
+        marginBottom: 10
+    },  
     buttonsRow: {
         flexDirection: 'row',
         marginTop: 10
@@ -220,12 +279,19 @@ const styles = StyleSheet.create({
     dialogButton: {
         padding: 10
     },
-    buttonCancel: {
+    buttonLeaveTable: {
+        marginLeft: 10,
         backgroundColor: '#991111'
     },
     buttonBuyIn: {
         marginLeft: 10,
         backgroundColor: '#117711'
+    },
+    buttonInfo: {
+        backgroundColor: '#0808FF'
+    },
+    buttonCancel: {
+        backgroundColor: '#991111'
     },
     buttonText: {
         color: 'white',

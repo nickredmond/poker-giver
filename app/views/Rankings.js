@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, FlatList, Picker, StyleSheet } from 'react-native';
-import { Entypo } from '@expo/vector-icons';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { getRankings } from '../services/PlayerService';
 
