@@ -33,6 +33,9 @@ export class Home extends React.Component {
     loggedIn = () => {
         this.setState({ isAuthenticated: true });
     }
+    loggedOut = () => {
+        this.setState({ isAuthenticated: false });
+    }
 
     goToTables = () => {
         const { navigate } = this.props.navigation;
@@ -46,22 +49,31 @@ export class Home extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <Text>poker giver</Text>
+                <Text style={styles.title}>pfbt</Text>
+                <Text style={styles.subtitle}>poker for a better tomorrow</Text>
 
-                {
-                    this.state.isLoading && 
-                    <View><Text>Loading...</Text></View>
-                }
+                <View style={styles.homePageContent}>
+                    {
+                        this.state.isLoading && 
+                        <View style={styles.loadingContainer}>
+                            <Text style={styles.loadingText}>Loading...</Text>
+                        </View>
+                    }
 
-                {
-                    this.state.isAuthenticated && 
-                    <MainMenu goToTables={this.goToTables} goToRankings={this.goToRankings}></MainMenu>
-                }
+                    {
+                        this.state.isAuthenticated && 
+                        <MainMenu 
+                            goToTables={this.goToTables} 
+                            goToRankings={this.goToRankings}
+                            loggedOut={this.loggedOut}>
+                        </MainMenu>
+                    }
 
-                {
-                    !(this.state.isLoading || this.state.isAuthenticated) && 
-                    <Login loggedIn={this.loggedIn}></Login>
-                }
+                    {
+                        !(this.state.isLoading || this.state.isAuthenticated) && 
+                        <Login loggedIn={this.loggedIn}></Login>
+                    }
+                </View>
             </View>
         );
     }
@@ -73,5 +85,25 @@ const styles = StyleSheet.create({
         marginTop: 20,
         alignItems: 'center',
         backgroundColor: '#222'
+    },
+    loadingContainer: {
+        alignItems: 'center'
+    },
+    loadingText: {
+        fontSize: 24,
+        color: '#efefef'
+    },
+    title: {
+        fontSize: 96,
+        color: '#efefef'
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#ababab'
+    },
+    homePageContent: {
+        flex: 1,
+        alignItems: 'center',
+        marginTop: 25
     }
 });

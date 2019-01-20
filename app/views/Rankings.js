@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, FlatList, Picker, StyleSheet } from 'react-native';
 import { PokerGiverText } from './partial/PokerGiverText';
+import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { getRankings } from '../services/PlayerService';
 
-export class Rankings extends React.Component {
+export class Rankings extends AuthenticatedComponent {
     static navigationOptions = {
         title: 'Rankings'
     }

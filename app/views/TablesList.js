@@ -8,8 +8,9 @@ import { getTables } from '../services/TableService';
 import { getUserToken } from '../services/PlayerService';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { PokerGiverButton } from './partial/PokerGiverButton';
+import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 
-export class TablesList extends React.Component {
+export class TablesList extends AuthenticatedComponent {
     static navigationOptions = {
         title: 'Tables'
     };

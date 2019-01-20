@@ -6,6 +6,7 @@ import {
     WebView, TextInput, BackHandler } from 'react-native';
 import Modal from 'react-native-modal';
 import { Entypo } from '@expo/vector-icons';
+import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
 
 const headerStyles = StyleSheet.create({
@@ -18,7 +19,7 @@ const headerStyles = StyleSheet.create({
 
 var self; // used to reference component from within static header
 var betAmountPlaceholder = 'Enter buy-in amount...';
-export class Table extends React.Component {
+export class Table extends AuthenticatedComponent {
     static navigationOptions = {
         headerLeft: (
             <TouchableHighlight onPress={() => self.backPressed()}>

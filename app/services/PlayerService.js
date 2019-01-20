@@ -24,7 +24,10 @@ export const authenticate = () => {
                                         reject('Error using device storage.');
                                     }
                                     else {
-                                        resolve(true);
+                                        setLastLogin().then(
+                                            () => { resolve(true); },
+                                            () => { reject('Error using device storage.') }
+                                        )
                                     }
                                 });
                             });
@@ -47,13 +50,6 @@ export const authenticate = () => {
     });
 }
 
-export const keepUserLoggedIn = () => {
-    const fortyFiveMinutes = 45 * 60 * 1000;
-    setInterval(() => {
-        authenticate();
-    }, fortyFiveMinutes);
-}
-
 export const saveAuthResponseData = (username, response, resolve, reject) => {
     AsyncStorage.setItem('player-name', username, (err) => {
         if (err) {
@@ -71,7 +67,10 @@ export const saveAuthResponseData = (username, response, resolve, reject) => {
                             reject('Error saving to device storage.');
                         }
                         else {
-                            resolve({ isSuccess: true });
+                            setLastLogin().then(
+                                () => { resolve({ isSuccess: true }); },
+                                () => { reject('Error using device storage.') }
+                            )
                         }
                     })
                 }
@@ -138,6 +137,23 @@ export const logIn = (username, password) => {
             }
         );
     });
+}
+
+export const logOut = () => {
+    return new Promise((resolve, reject) => {
+        try {
+            AsyncStorage.removeItem('user-token', err => {
+                if (err) {
+                    resolve(false);
+                }
+                else {
+                    resolve(true);
+                }
+            })
+        } catch(err) {
+            reject('Error accessing device storage.');
+        }
+    })
 }
 
 export const removeChips = (numberOfChips, userToken) => {
@@ -213,6 +229,32 @@ export const getUserToken = () => {
             }
             else {
                 resolve(token);
+            }
+        });
+    })
+}
+export const getLastLogin = () => {
+    return new Promise((resolve, reject) => {
+        AsyncStorage.getItem('last-login', (err, lastLogin) => {
+            if (err) {
+                reject('Error reading values from device.');
+            }
+            else {
+                const lastLoginDate = lastLogin ? new Date(lastLogin) : null;
+                resolve(lastLoginDate);
+            }
+        })
+    })
+}
+export const setLastLogin = () => {
+    return new Promise((resolve, reject) => {
+        const lastLogin = new Date().toString();
+        AsyncStorage.setItem('last-login', lastLogin, err => {
+            if (err) {
+                reject('Error reading values from device.');
+            }
+            else {
+                resolve();
             }
         });
     })

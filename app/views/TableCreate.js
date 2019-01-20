@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Button, Text, TextInput, StyleSheet } from 'react-native';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { PokerGiverButton } from './partial/PokerGiverButton';
+import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { createTable } from '../services/TableService';
 import { getUserToken } from '../services/PlayerService';
 
-export class TableCreate extends React.Component {
+export class TableCreate extends AuthenticatedComponent {
     static navigationOptions = {
         title: 'Create Table'
     };
@@ -18,6 +19,13 @@ export class TableCreate extends React.Component {
         };
     }
 
+    checkAiPlayersWarning = (numberOfAiPlayers) => {
+        const aiPlayersWarning = numberOfAiPlayers > 0 ? 
+            'NOTE: You will only earn 25% credit if any AI players are in the game.' :
+            null;
+        this.setState({ aiPlayersWarning });
+    }
+
     incrementPlayers = () => {
         this.setState({ numberOfPlayers: this.state.numberOfPlayers + 1 });
     }
@@ -25,10 +33,14 @@ export class TableCreate extends React.Component {
         this.setState({ numberOfPlayers: this.state.numberOfPlayers - 1 });
     }
     incrementAiPlayers = () => {
-        this.setState({ numberOfAiPlayers: this.state.numberOfAiPlayers + 1 });
+        const numberOfAiPlayers = this.state.numberOfAiPlayers + 1;
+        this.setState({ numberOfAiPlayers });
+        this.checkAiPlayersWarning(numberOfAiPlayers);
     }
     decrementAiPlayers = () => {
-        this.setState({ numberOfAiPlayers: this.state.numberOfAiPlayers - 1 });
+        const numberOfAiPlayers = this.state.numberOfAiPlayers - 1;
+        this.setState({ numberOfAiPlayers });
+        this.checkAiPlayersWarning(numberOfAiPlayers);
     }
 
     unknownErrorReturned = () => {
@@ -80,6 +92,12 @@ export class TableCreate extends React.Component {
                 {
                     this.state.pageError && 
                     <Text style={styles.pageErrorMessage}>{ this.state.pageError }</Text>
+                }
+                {
+                    this.state.aiPlayersWarning && 
+                    <View style={styles.alertWarning}>
+                        <Text style={styles.alertWarningText}>{ this.state.aiPlayersWarning }</Text>
+                    </View>
                 }
 
                 <View style={styles.formGroup}>
@@ -181,5 +199,17 @@ const styles = StyleSheet.create({
     },
     aiFormGroup: {
         paddingBottom: 20
+    },
+    alertWarning: {
+        borderColor: '#faf2cc',
+        backgroundColor: '#fcf8e3',
+        borderRadius: 3,
+        borderWidth: 2,
+        padding: 5,
+        marginBottom: 10
+    },
+    alertWarningText: {
+        color: '#8a6d3b',
+        fontSize: 18
     }
 });
