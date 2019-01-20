@@ -47,6 +47,13 @@ export const authenticate = () => {
     });
 }
 
+export const keepUserLoggedIn = () => {
+    const fortyFiveMinutes = 45 * 60 * 1000;
+    setInterval(() => {
+        authenticate();
+    }, fortyFiveMinutes);
+}
+
 export const saveAuthResponseData = (username, response, resolve, reject) => {
     AsyncStorage.setItem('player-name', username, (err) => {
         if (err) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { PokerGiverText } from '../partial/PokerGiverText';
-import { logIn, createUser } from '../../services/PlayerService';
+import { logIn, createUser, keepUserLoggedIn } from '../../services/PlayerService';
 
 var  EMAIL_PATTERN = /^\S+@\S+$/;
 export class Login extends React.Component {
@@ -33,6 +33,7 @@ export class Login extends React.Component {
             createUser(this.state.username, this.state.password, this.state.email).then(
                 (response) => {
                     if (response.isSuccess) {
+                        keepUserLoggedIn();
                         this.props.loggedIn();
                     }
                     else if (response.playerAlreadyExists) {
@@ -59,6 +60,7 @@ export class Login extends React.Component {
             logIn(this.state.username, this.state.password).then(
                 (response) => {
                     if (response.isSuccess) {
+                        keepUserLoggedIn();
                         this.props.loggedIn();
                     }
                     else if (response.playerExists) {
