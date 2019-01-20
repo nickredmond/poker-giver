@@ -24,7 +24,14 @@ export class Rankings extends React.Component {
     renderList = ({ item: ranking }) => {
         return (
             <View style={styles.ranking}>
-                <Text style={styles.rankingText}>{ranking.playerName}</Text>
+                {
+                    ranking.winningAmount && 
+                   <View style={styles.winningContainer}>
+                         <Text style={[styles.winningText, styles.alignRight]}>{'$' + ranking.winningAmount}</Text>
+                   </View>
+                }
+
+                <Text style={[styles.rankingText, styles.winnerName]}>{ranking.playerName}</Text>
                 <Text style={[styles.rankingText, styles.alignRight]}>{ranking.netScore}</Text>
             </View>
         )
@@ -139,5 +146,20 @@ const styles = StyleSheet.create({
     },
     alignRight: {
         marginLeft: 'auto'
+    },
+    winningContainer: {
+        alignSelf: 'flex-start',
+    },
+    winningText: {
+       paddingLeft: 5,
+       paddingRight: 5,
+       borderRadius: 5,
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#efefef',
+        backgroundColor: '#339933'
+    },
+    winnerName: {
+        marginLeft: 10
     }
 })
