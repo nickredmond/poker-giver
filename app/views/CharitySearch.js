@@ -1,10 +1,14 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { 
+    View, Text, TextInput, 
+    TouchableOpacity, FlatList, Keyboard,
+    Linking, StyleSheet } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import { PokerGiverText } from './partial/PokerGiverText';
-import { getPlayerAccountInfo } from '../services/PlayerService';
+import { getUserToken, getPlayerAccountInfo } from '../services/PlayerService';
 import { searchCharities } from '../services/CharityService';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
+import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
 
 export class CharitySearch extends AuthenticatedComponent {
     static navigationOptions = {
@@ -33,6 +37,47 @@ export class CharitySearch extends AuthenticatedComponent {
         )
     }
 
+    setQuery = (text) => {
+        this.setState({ queryText: text, queryChanged: true });
+    }
+    queryCharities = () => {
+        Keyboard.dismiss();
+
+        if (this.state.queryText && this.state.queryChanged) {
+            this.setState({ isSearching: true, queryChanged: false });
+            getUserToken().then(
+                token => {
+                    searchCharities(this.state.queryText, token).then(
+                        charities => {
+                            this.setState({
+                                isSearching: false,
+                                charities
+                            });
+                        },
+                        () => {
+                            alert('There was a problem searching for charities.');
+                        }
+                    )
+                },
+                () => {
+                    alert('There was a problem reading from device storage.')
+                }
+            )
+        }
+    }
+
+    openCharityNavigator = () => {
+        Linking.openURL('https://www.charitynavigator.org/');
+    }
+
+    renderList = ({ item: charity }) => {
+        return (
+            <TouchableOpacity style={styles.charityItem}>
+                <Text style={styles.charityItemText}>{ charity.name }</Text>
+            </TouchableOpacity>
+        )
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -51,18 +96,31 @@ export class CharitySearch extends AuthenticatedComponent {
                         <Text style={[styles.accountOverviewText, styles.alignRight]}>${ this.state.availableBalance }</Text>
                     </View>
                 </View>
-                <View>
-                    <PokerGiverText style={styles.areaTitle} textValue={'search for charities'}></PokerGiverText>
-                    <View>
-                        <TextInput></TextInput>
-                        <TouchableOpacity>
+                <PokerGiverText style={styles.areaTitle} textValue={'search for charities'}></PokerGiverText>
+                <View style={styles.searchArea}>
+                    <View style={styles.inputFormGroup}>
+                        <TextInput style={styles.input} onChangeText={text => this.setQuery(text)}></TextInput>
+                        <TouchableOpacity style={styles.searchButton} onPress={this.queryCharities.bind()}>
                             <Entypo name='magnifying-glass' style={styles.buttonIcon} />
                         </TouchableOpacity>
                     </View>
-                    <View>
-                        <Image></Image>
-                        <PokerGiverText style={styles.link} textValue={'Powered by Charity Navigator'}></PokerGiverText>
-                    </View>
+                    <TouchableOpacity onPress={() => this.openCharityNavigator() }>
+                    <PokerGiverText style={styles.link} textValue={'Powered by Charity Navigator'}></PokerGiverText>
+                    </TouchableOpacity>
+                </View>
+                <PokerGiverText style={styles.areaTitle} textValue={'results'}></PokerGiverText>
+                <View style={styles.searchResults}>
+                    {
+                        this.state && this.state.isSearching && 
+                        <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
+                    }
+
+                    {
+                        this.state && !this.state.isSearching && this.state.charities && 
+                        <View style={styles.charityResults}>
+                            <FlatList data={this.state.charities} renderItem={this.renderList}></FlatList>
+                        </View>
+                    }
                 </View>
             </View>
         )
@@ -78,7 +136,16 @@ const styles = StyleSheet.create({
     accountOverview: {
         backgroundColor: '#d9edf7',
         alignSelf: 'stretch',
-        margin: 10
+        marginLeft: 15,
+        marginRight: 15,
+        marginTop: 10,
+        marginBottom: 10
+    },
+    searchArea: {
+        alignSelf: 'stretch',
+        marginLeft: 15,
+        marginRight: 15,
+        marginBottom: 5
     },
     accountOverviewText: {
         color: '#31708f',
@@ -95,6 +162,43 @@ const styles = StyleSheet.create({
         marginLeft: 'auto'
     },
     buttonIcon: {
-        
+        fontSize: 48,
+        color: '#efefef'
+    },
+    searchButton: {
+        backgroundColor: '#0062cc',
+        flex: 2,
+        paddingLeft: 5,
+        paddingRight: 5
+    },
+    input: {
+        backgroundColor: '#efefef',
+        flex: 14
+    },
+    inputFormGroup: {
+        alignSelf: 'stretch',
+        flexDirection: 'row'
+    },
+    link: {
+        fontSize: 16,
+        textDecorationLine: 'underline'
+    },
+    searchResults: {
+        paddingLeft: 15,
+        paddingRight: 15,
+        alignItems: 'center'
+    },
+    charityItem: {
+        backgroundColor: '#88FF88',
+        padding: 10,
+        margin: 5
+    },
+    charityItemText: {
+        color: '#222',
+        fontSize: 16
+    },
+    charityResults: {
+        height: '70%',
+        alignItems: 'center'
     }
 })

@@ -12,9 +12,14 @@ export const searchCharities = (query, token) => {
         })
         .then(
             response => {
-                response.json().then(responseBody => {
-                    resolve(responseBody);
-                })
+                if (response.ok) {
+                    response.json().then(responseBody => {
+                        resolve(responseBody);
+                    })
+                }
+                else {
+                    reject('There was a problem searching charities.');
+                }
             },
             err => {
                 reject(err);

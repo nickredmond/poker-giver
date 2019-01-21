@@ -9,6 +9,7 @@ import { getUserToken } from '../services/PlayerService';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { PokerGiverButton } from './partial/PokerGiverButton';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
+import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
 
 export class TablesList extends AuthenticatedComponent {
     static navigationOptions = {
@@ -119,10 +120,7 @@ export class TablesList extends AuthenticatedComponent {
                 </View>
                 {
                     this.state && this.state.isSearching && 
-                    <View style={styles.loadingView}>
-                        <ActivityIndicator style={styles.loadingSpinner} size='large' color='#88FF88' />
-                        <PokerGiverText style={styles.loadingText} textValue={'Loading...'}></PokerGiverText>
-                    </View>
+                    <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
                 }
                 { 
                     this.state && !this.state.isSearching && this.state.tables && 
@@ -182,14 +180,6 @@ const styles = StyleSheet.create({
         height: '75%',
         alignItems: 'center',
         paddingTop: 10
-    },
-    loadingView: {
-        marginTop: 25,
-        marginBottom: 25,
-        padding: 10
-    },
-    loadingText: {
-        fontSize: 18
     },
     searchLabel: {
         fontSize: 16,
