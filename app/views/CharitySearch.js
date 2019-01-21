@@ -1,9 +1,8 @@
 import React from 'react';
 import { 
-    View, Text, TextInput, 
+    View, Text, TextInput, Image,
     TouchableOpacity, FlatList, Keyboard,
     StyleSheet } from 'react-native';
-import { Entypo } from '@expo/vector-icons';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { getUserToken, getPlayerAccountInfo } from '../services/PlayerService';
 import { searchCharities } from '../services/CharityService';
@@ -106,7 +105,9 @@ export class CharitySearch extends AuthenticatedComponent {
                     <View style={styles.inputFormGroup}>
                         <TextInput style={styles.input} onChangeText={text => this.setQuery(text)}></TextInput>
                         <TouchableOpacity style={styles.searchButton} onPress={this.queryCharities.bind()}>
-                            <Entypo name='magnifying-glass' style={styles.buttonIcon} />
+                            <Image 
+                                source={require('../../assets/images/search.png')} 
+                                style={styles.searchIcon} />
                         </TouchableOpacity>
                     </View>
                     <CharityNavigatorAttribution linkbackUrl={'https://www.charitynavigator.org/'}></CharityNavigatorAttribution>
@@ -164,15 +165,13 @@ const styles = StyleSheet.create({
     alignRight: {
         marginLeft: 'auto'
     },
-    buttonIcon: {
-        fontSize: 48,
-        color: '#efefef'
-    },
     searchButton: {
         backgroundColor: '#0062cc',
         flex: 2,
         paddingLeft: 5,
-        paddingRight: 5
+        paddingRight: 5,
+        paddingTop: 10,
+        paddingBottom: 10
     },
     input: {
         backgroundColor: '#efefef',
@@ -199,5 +198,11 @@ const styles = StyleSheet.create({
     charityResults: {
         height: '70%',
         alignItems: 'center'
+    },
+    searchIcon: {
+        width: 20,
+        height: 20,
+       marginLeft: 'auto',
+       marginRight: 'auto'
     }
 })

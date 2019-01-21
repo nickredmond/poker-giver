@@ -18,7 +18,7 @@ export class CharityNavigatorAttribution extends React.Component {
 
 const styles = StyleSheet.create({
     attributionLink: {
-        width: '60%'
+        alignSelf: 'flex-start'
     },
     link: {
         fontSize: 16,

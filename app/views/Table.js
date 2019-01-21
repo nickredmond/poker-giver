@@ -2,18 +2,15 @@ import React from 'react';
 import  Canvas  from 'react-native-canvas';
 import { 
     View, TouchableOpacity, TouchableHighlight, Button, 
-    Text, StyleSheet, Dimensions, 
+    Text, StyleSheet, Dimensions, Image,
     WebView, TextInput, BackHandler } from 'react-native';
 import Modal from 'react-native-modal';
-import { Entypo } from '@expo/vector-icons';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
 
 const headerStyles = StyleSheet.create({
-    buttonIcon: {
-        fontSize: 48,
-        color: '#444',
-        marginBottom: 10
+    backButton: {
+        paddingLeft: 5
     }
 })
 
@@ -22,8 +19,10 @@ var betAmountPlaceholder = 'Enter buy-in amount...';
 export class Table extends AuthenticatedComponent {
     static navigationOptions = {
         headerLeft: (
-            <TouchableHighlight onPress={() => self.backPressed()}>
-                <Entypo name='chevron-left' style={headerStyles.buttonIcon} />
+            <TouchableHighlight style={headerStyles.backButton} onPress={() => self.backPressed()}>
+                <Image 
+                    source={require('../../assets/images/chevron-left.png')} 
+                    style={{ width: 20, height: 20 }} />
             </TouchableHighlight>
         ),
         headerRight: (

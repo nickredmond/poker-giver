@@ -24,7 +24,7 @@ export class TablesList extends AuthenticatedComponent {
     }
 
     loadTablesList = () => {
-        this.setState({ query: null, queryText: '' });
+        this.setState({ query: null, queryText: '', isLoading: true });
         setInterval(() => {
             this.searchGames();
         }, 333);
@@ -33,13 +33,18 @@ export class TablesList extends AuthenticatedComponent {
             getTables(token).then(
                 result => {
                     if (result.isSuccess) {
-                        this.setState({ tables: result.tables || [] });
+                        this.setState({ 
+                            tables: result.tables || [],
+                            isLoading: false
+                        });
                     }
                     else {
+                        this.setState({ isLoading: false })
                         alert('There was a problem fetching tables.');
                     }
                 },
                 () => {
+                    this.setState({ isLoading: false })
                     alert('There was a problem fetching tables.')
                 }
             )
@@ -72,7 +77,7 @@ export class TablesList extends AuthenticatedComponent {
     searchGames = () => {
         if (this.state.query || this.state.query === '') {
             const query = this.state.query || null;
-            this.setState({ query: null, isSearching: true });
+            this.setState({ query: null, isLoading: true });
             getUserToken().then(token => {  
                 getTables(token, query).then(
                     result => {
@@ -83,10 +88,10 @@ export class TablesList extends AuthenticatedComponent {
                         else {
                             alert('There was a problem searching tables.');
                         }
-                        this.setState({ tables, isSearching: false });
+                        this.setState({ tables, isLoading: false });
                     },
                     () => {
-                        this.setState({ isSearching: false });  
+                        this.setState({ isLoading: false });  
                         alert('There was a problem searching tables.');   
                     }
                 )
@@ -119,11 +124,11 @@ export class TablesList extends AuthenticatedComponent {
                     </TextInput>
                 </View>
                 {
-                    this.state && this.state.isSearching && 
+                    this.state && this.state.isLoading && 
                     <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
                 }
                 { 
-                    this.state && !this.state.isSearching && this.state.tables && 
+                    this.state && !this.state.isLoading && this.state.tables && 
                     <View style={styles.tablesListContainer}>
                         <PokerGiverText style={styles.listHeader} textValue={'touch any game below to join:'}></PokerGiverText>
                         <FlatList style={styles.tableList} data={this.state.tables} renderItem={this.renderList} /> 
