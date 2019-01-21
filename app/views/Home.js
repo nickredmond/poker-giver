@@ -45,6 +45,10 @@ export class Home extends React.Component {
         const { navigate } = this.props.navigation;
         navigate('Rankings');
     }
+    goToDonate = () => {
+        const { navigate } = this.props.navigation;
+        navigate('CharitySearch');
+    }
 
     render() {
         return (
@@ -65,6 +69,7 @@ export class Home extends React.Component {
                         <MainMenu 
                             goToTables={this.goToTables} 
                             goToRankings={this.goToRankings}
+                            goToDonate={this.goToDonate}
                             loggedOut={this.loggedOut}>
                         </MainMenu>
                     }
