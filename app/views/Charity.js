@@ -1,0 +1,90 @@
+import React from 'react';
+import { View, Image, ScrollView, Linking, StyleSheet } from 'react-native';
+import { PokerGiverText } from './partial/PokerGiverText';
+import { PokerGiverButton } from './partial/PokerGiverButton';
+import { AuthenticatedComponent } from '../shared/AuthenticatedComponent'; 
+import { CharityNavigatorAttribution } from './partial/CharityNavigatorAttribution';
+
+export class Charity extends AuthenticatedComponent {
+    static navigationOptions = {
+        title: 'Charity Info'
+    }
+
+    constructor(props) {
+        super(props);
+        const { navigation } = this.props;
+        const charity = navigation.getParam('charity');
+        const availableBalance = navigation.getParam('availableBalance');
+        this.state = { charity, availableBalance };
+    }
+
+    goToCharitySite = (siteUrl) => {
+        Linking.openURL(siteUrl);
+    }
+
+    render() {
+        return (
+            <View style={styles.container}>
+                <PokerGiverText style={styles.charityName} textValue={this.state.charity.name}></PokerGiverText>
+                <PokerGiverText style={styles.missionHeader} textValue={'mission:'}></PokerGiverText>
+                <ScrollView style={styles.missionTextScroller}>
+                    <PokerGiverText style={styles.missionText} textValue={this.state.charity.mission}></PokerGiverText>
+                </ScrollView>
+                <View style={styles.ratingContainer}>
+                    <PokerGiverText style={styles.ratingLabel} textValue={'rating:'}></PokerGiverText>
+                    <Image
+                        style={{ width: 100, height: 25 }}
+                        source={{ uri: this.state.charity.ratingImage }}>
+                    </Image>
+                </View>
+                <CharityNavigatorAttribution linkbackUrl={this.state.charity.charityNavigatorURL}></CharityNavigatorAttribution>
+                <View style={styles.buttonsContainer}>
+                    <PokerGiverButton 
+                        onButtonPress={() => this.goToCharitySite(this.state.charity.websiteURL)}
+                        buttonTitle={'visit site'}>
+                    </PokerGiverButton>
+                    <PokerGiverButton buttonTitle={'donate'}></PokerGiverButton>
+                </View>
+            </View>
+        )
+    }
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#222',
+        paddingLeft: 15,
+        paddingRight: 15
+    },
+    charityName: {
+        fontSize: 26
+    },
+    missionHeader: {
+        fontSize: 18,
+        marginTop: 10,
+        marginBottom: 5
+    },
+    missionText: {
+        fontSize: 16
+    },
+    missionTextScroller: {
+        flex: 1,
+        padding: 5,
+        borderColor: '#ababab',
+        borderRadius: 2,
+        borderWidth: 1
+    },  
+    buttonsContainer: {
+        alignItems: 'center',
+        marginTop: 20
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        marginTop: 10
+    },
+    ratingLabel: {
+        fontSize: 18,
+        marginRight: 5
+    }
+})

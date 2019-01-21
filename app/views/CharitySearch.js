@@ -2,13 +2,14 @@ import React from 'react';
 import { 
     View, Text, TextInput, 
     TouchableOpacity, FlatList, Keyboard,
-    Linking, StyleSheet } from 'react-native';
+    StyleSheet } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { getUserToken, getPlayerAccountInfo } from '../services/PlayerService';
 import { searchCharities } from '../services/CharityService';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
+import { CharityNavigatorAttribution } from './partial/CharityNavigatorAttribution';
 
 export class CharitySearch extends AuthenticatedComponent {
     static navigationOptions = {
@@ -66,13 +67,17 @@ export class CharitySearch extends AuthenticatedComponent {
         }
     }
 
-    openCharityNavigator = () => {
-        Linking.openURL('https://www.charitynavigator.org/');
+    charitySelected = (charity) => {
+        const { navigate } = this.props.navigation;
+        navigate('Charity', {
+            charity,
+            availableBalance: this.state.availableBalance
+        });
     }
 
     renderList = ({ item: charity }) => {
         return (
-            <TouchableOpacity style={styles.charityItem}>
+            <TouchableOpacity style={styles.charityItem} onPress={() => this.charitySelected(charity)}>
                 <Text style={styles.charityItemText}>{ charity.name }</Text>
             </TouchableOpacity>
         )
@@ -104,9 +109,7 @@ export class CharitySearch extends AuthenticatedComponent {
                             <Entypo name='magnifying-glass' style={styles.buttonIcon} />
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => this.openCharityNavigator() }>
-                    <PokerGiverText style={styles.link} textValue={'Powered by Charity Navigator'}></PokerGiverText>
-                    </TouchableOpacity>
+                    <CharityNavigatorAttribution linkbackUrl={'https://www.charitynavigator.org/'}></CharityNavigatorAttribution>
                 </View>
                 <PokerGiverText style={styles.areaTitle} textValue={'results'}></PokerGiverText>
                 <View style={styles.searchResults}>
@@ -178,10 +181,6 @@ const styles = StyleSheet.create({
     inputFormGroup: {
         alignSelf: 'stretch',
         flexDirection: 'row'
-    },
-    link: {
-        fontSize: 16,
-        textDecorationLine: 'underline'
     },
     searchResults: {
         paddingLeft: 15,
