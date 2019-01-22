@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, Picker, StyleSheet } from 'react-native';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
+import SegmentedControlTab from 'react-native-segmented-control-tab';
 import { getRankings } from '../services/PlayerService';
 
 export class Rankings extends AuthenticatedComponent {
@@ -11,15 +12,12 @@ export class Rankings extends AuthenticatedComponent {
 
     constructor(props) {
         super(props);
-        getRankings('month', 'current').then(
-            rankings => {
-                this.setState({ rankings, currentLeaderboard: 'currentMonth' });
-            },
-            () => {
-                // todo: better error handling
-                alert('Error fetching rankings :/');
-            }
-        )
+        this.state = { 
+            selectedIndex: 0,
+            monthlyRankingTitle: 'this month',
+            weeklyRankingTitle: 'this week'
+        }
+        this.leaderboardChanged('current');
     }
 
     renderList = ({ item: ranking }) => {
@@ -39,27 +37,12 @@ export class Rankings extends AuthenticatedComponent {
     }
 
     leaderboardChanged = (leaderboardName) => {
-        this.setState({ currentLeaderboard: leaderboardName });
-        let leaderboardFetch = null;
-
-        switch (leaderboardName) {
-            case 'currentMonth':
-                leaderboardFetch = getRankings('month', 'current');
-                break;
-            case 'lastMonth':
-                leaderboardFetch = getRankings('month', 'last');
-                break;
-            case 'currentWeek':
-                leaderboardFetch = getRankings('week', 'current');
-                break;
-            case 'lastWeek':
-                leaderboardFetch = getRankings('week', 'last');
-                break;
-        }
-
-        leaderboardFetch.then(
-            rankings => {
-                this.setState({ rankings });
+        getRankings(leaderboardName).then(
+            rankingsResponse => {
+                this.setState({
+                    monthlyRankings: rankingsResponse.monthlyRankings,
+                    weeklyRankings: rankingsResponse.weeklyRankings
+                });
             },
             () => {
                 alert('Error fetching rankings :/')
@@ -67,38 +50,45 @@ export class Rankings extends AuthenticatedComponent {
         )
     }
 
+    handleIndexChange = (index) => {
+        const titleTimeQualifier = (index === 0) ? 'this' : 'last';
+        this.setState({
+          ...this.state,
+          selectedIndex: index,
+          monthlyRankingTitle: titleTimeQualifier + ' month',
+          weeklyRankingTitle: titleTimeQualifier + ' week'
+        });
+
+        const leaderboardName = (index === 0) ? 'current' : 'previous';
+        this.leaderboardChanged(leaderboardName);
+      }
+
     render() {
         return (
-            <View style={styles.container}>
-                {/* <Picker
-  selectedValue={this.state.language}
-  style={{ height: 50, width: 100 }}
-  onValueChange={(itemValue, itemIndex) => this.setState({language: itemValue})}>
-  <Picker.Item label="Java" value="java" />
-  <Picker.Item label="JavaScript" value="js" />
-</Picker> */}
+            <View style={styles.container}> 
+                <View style={styles.leaderboardSelectWrapperStyle}>
+                    <PokerGiverText style={styles.leaderboardPickerLabel} textValue={'Leaderboard:'}>
+                    </PokerGiverText>
+                    <SegmentedControlTab
+                        values={['current', 'previous']}
+                        selectedIndex={this.state.selectedIndex}
+                        onTabPress={this.handleIndexChange}
+                        />
+                </View>
+
                 {
-                    this.state && this.state.currentLeaderboard &&
-                    <View style={styles.leaderboardPickerContainer}>
-                        <PokerGiverText style={styles.leaderboardPickerLabel} textValue={'Leaderboard:'}>
-                        </PokerGiverText>
-                        <Picker
-                            style={styles.leaderboardPicker}
-                            selectedValue={this.state.currentLeaderboard}
-                            onPress={(e)=>alert('yolo')}
-                            onValueChange={value => this.leaderboardChanged(value)}>
-                            <Picker.Item label="This Month" value="currentMonth" />
-                            <Picker.Item label="This Week" value="currentWeek" />
-                            <Picker.Item label="Last Month" value="lastMonth" />
-                            <Picker.Item label="Last Week" value="lastWeek" />
-                        </Picker>
+                    this.state && this.state.monthlyRankings &&
+                    <View style={styles.listContainer}>
+                        <PokerGiverText style={styles.rankingsTitle} textValue={this.state.monthlyRankingTitle}></PokerGiverText>
+                        <FlatList data={this.state.monthlyRankings} renderItem={this.renderList} />
                     </View>
                 }
 
                 {
-                    this.state && this.state.rankings &&
+                    this.state && this.state.weeklyRankings &&
                     <View style={styles.listContainer}>
-                        <FlatList data={this.state.rankings} renderItem={this.renderList} />
+                    <PokerGiverText style={styles.rankingsTitle} textValue={this.state.weeklyRankingTitle}></PokerGiverText>
+                        <FlatList data={this.state.weeklyRankings} renderItem={this.renderList} />
                     </View>
                 }
             </View>
@@ -112,7 +102,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#222'
     },
     listContainer: {
-        flex: 10,
+        flex: 1,
         marginTop: 10
     },
     ranking: {
@@ -135,12 +125,11 @@ const styles = StyleSheet.create({
         color: '#efefef'
     },
     leaderboardPickerLabel: {
-        fontSize: 24,
-        margin: 10
-    },
-    leaderboardPickerContainer: {
-        flex: 1,
-        flexDirection: 'row'
+        fontSize: 18,
+        marginBottom: 5,
+        marginLeft: 10,
+        marginRight: 10,
+        marginTop: 15
     },
     rankingText: {
         fontSize: 18
@@ -161,6 +150,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#339933'
     },
     winnerName: {
+        marginLeft: 10
+    },
+    leaderboardSelectWrapperStyle: {
+        marginLeft: 10,
+        marginRight: 10
+    },
+    rankingsTitle: {
+        fontSize: 18,
         marginLeft: 10
     }
 })

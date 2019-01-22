@@ -291,12 +291,12 @@ export const isAuthorOfGame = (gameId) => {
     })
 }
 
-// rankingType=['month', 'week'], timeType=['current', 'last']
-export const getRankings = (rankingType, timeType) => {
+// timeType=['current', 'previous']
+export const getRankings = (timeType) => {
     return new Promise((resolve, reject) => {
         getUserToken().then(
             token => {
-                fetch(getApiUrl() + `rankings/${rankingType}/${timeType}`, {
+                fetch(getApiUrl() + `rankings/${timeType}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
