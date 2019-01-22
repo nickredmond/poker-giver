@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
     loadingView: {
         marginTop: 25,
         marginBottom: 25,
-        padding: 10
+        padding: 10,
+        alignItems: 'center'
     },
     loadingText: {
         fontSize: 18

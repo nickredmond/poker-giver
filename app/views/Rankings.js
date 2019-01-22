@@ -3,6 +3,7 @@ import { View, Text, FlatList, Picker, StyleSheet } from 'react-native';
 import { PokerGiverText } from './partial/PokerGiverText';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import SegmentedControlTab from 'react-native-segmented-control-tab';
+import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
 import { getRankings } from '../services/PlayerService';
 
 export class Rankings extends AuthenticatedComponent {
@@ -75,6 +76,11 @@ export class Rankings extends AuthenticatedComponent {
                         onTabPress={this.handleIndexChange}
                         />
                 </View>
+
+                {
+                    !(this.state.monthlyRankings && this.state.weeklyRankings) && 
+                    <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
+                }
 
                 {
                     this.state && this.state.monthlyRankings &&
