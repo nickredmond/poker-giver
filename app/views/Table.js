@@ -1,11 +1,11 @@
 import React from 'react';
-import  Canvas  from 'react-native-canvas';
 import { 
     View, TouchableOpacity, TouchableHighlight, Button, 
     Text, StyleSheet, Dimensions, Image,
-    WebView, TextInput, BackHandler } from 'react-native';
+    WebView, BackHandler } from 'react-native';
 import Modal from 'react-native-modal';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
+import { PokerGiverNumberModal } from './partial/PokerGiverNumberModal';
 import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
 
 const headerStyles = StyleSheet.create({
@@ -15,7 +15,6 @@ const headerStyles = StyleSheet.create({
 })
 
 var self; // used to reference component from within static header
-var betAmountPlaceholder = 'Enter buy-in amount...';
 export class Table extends AuthenticatedComponent {
     static navigationOptions = {
         headerLeft: (
@@ -27,7 +26,7 @@ export class Table extends AuthenticatedComponent {
         ),
         headerRight: (
             <Button 
-                onPress={() => self.toggleModal()}
+                onPress={() => self.setModalVisible(true)}
                 title="+ Add Chips"
                 />
         )
@@ -48,8 +47,7 @@ export class Table extends AuthenticatedComponent {
                 player: playerInfo,
                 gameId, 
                 isModalVisible: true,
-                isAuthor: isAuthor || false,
-                betAmount: betAmountPlaceholder
+                isAuthor: isAuthor || false
             });
         });
     }
@@ -66,18 +64,7 @@ export class Table extends AuthenticatedComponent {
         return true; // prevents navigating back automatically
     }
 
-    toggleModal = () => {
-        this.setState({ isModalVisible: !this.state.isModalVisible });
-    }
-
-    cancelBuyIn = () => {
-        this.setState({
-            doesBetExceedChipsCount: false,
-            isZeroBet: false,
-            betAmount: betAmountPlaceholder
-        });
-        this.toggleModal();
-    }
+    
 
     addChips = (numberOfChips) => {
         let data;
@@ -117,49 +104,28 @@ export class Table extends AuthenticatedComponent {
 
         this.setState({
             isBoughtIn: true,
-            betAmount: 0,
             player
         });
     }
 
-    buyIn = () => {
-        const updatedState = {
-            isZeroBet: false,
-            doesBetExceedChipsCount: false
-        }
+    setModalVisible = (isVisible) => {
+        this.setState({ isModalVisible: isVisible });
+    }
 
-        if (!this.state.betAmount || this.state.betAmount === betAmountPlaceholder) {
-            updatedState.isZeroBet = true;
-        }
-        else if (this.state.betAmount > this.state.player.numberOfChips) {
-            updatedState.doesBetExceedChipsCount = true;
+    buyIn = (value) => {
+        this.setModalVisible(false);
+        
+        if (this.tableWebView) {
+            this.addChips(value);
         }
         else {
-            this.toggleModal();
-            
-            if (this.tableWebView) {
-                this.addChips(this.state.betAmount);
-            }
-            else {
-                const interval = setInterval(() => {
-                    if (this.tableWebView) {
-                        this.joinGame();
-                        clearInterval(interval);
-                    }
-                }, 1000);
-            }
+            const interval = setInterval(chipsValue => {
+                if (this.tableWebView) {
+                    this.addChips(chipsValue)
+                    clearInterval(interval);
+                }
+            }, 1000, value);
         }
-
-        this.setState(updatedState);
-    }
-
-    setBetAmount = (text) => {
-        const betAmount = parseInt(text) || 0;
-        this.setState({ betAmount });
-    }
-
-    clearBetAmount = () => {
-        this.setState({ betAmount: '' })
     }
 
     cancelLeaveTable = () => {
@@ -170,44 +136,26 @@ export class Table extends AuthenticatedComponent {
         navigate('TablesList')
     }
 
-    render() {
-        //const availableChipsCount = ;
+    getAddChipsModalMessage = () => {
+        const availableChips = (this.state && this.state.player) ? this.state.player.numberOfChips || 0 : 0;
+        return 'Available Chips: ' + availableChips;
+    }
 
+    render() {
         return (
             <View style={styles.container}>
-                <Modal isVisible={this.state.isModalVisible}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Buy In</Text>
-                    </View>
-                    <View style={styles.addChipsModal}>
-                        <Text style={styles.availableChipsLabel}>Available Chips: { this.state.player ? this.state.player.numberOfChips || 0 : 0 }</Text>
-                        <View style={styles.buyInAmountContainer}>
-                            <TextInput 
-                                keyboardType='numeric' 
-                                style={ this.state.buyInAmount ? styles.buyInAmount : [styles.buyInAmount, styles.buyInPlaceholder] }
-                                value={ this.state.betAmount }
-                                onFocus={ this.clearBetAmount.bind() }
-                                onChangeText={(text) => this.setBetAmount(text)}>
-                            </TextInput>
-                        </View>
-
-                        { 
-                            this.state.isZeroBet && <Text style={styles.betModalError}>Please enter amount greater than zero.</Text>
-                        }
-                        {
-                            this.state.doesBetExceedChipsCount && <Text style={styles.betModalError}>Amount entered exceeds available chips.</Text>
-                        }
-
-                        <View style={styles.buttonsRow}>
-                            <TouchableOpacity style={styles.buttonCancel} onPress={() => this.cancelBuyIn()}>
-                                <Text style={[styles.buttonText, styles.dialogButton]}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.buttonBuyIn} onPress={() => this.buyIn()}>
-                                <Text style={[styles.buttonText, styles.dialogButton]}>Buy In</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
+                {
+                    this.state && this.state.player && 
+                    <PokerGiverNumberModal 
+                        isModalVisible={this.state.isModalVisible}
+                        inputValuePlaceholder={'Enter buy-in amount...'}
+                        message={this.getAddChipsModalMessage()}
+                        amountTooLargeMessage={'Amount entered exceeds available chips.'}
+                        availableValue={this.state.player.numberOfChips}
+                        valueCancelled={() => this.setState({ isModalVisible: false })}
+                        valueSubmitted={value => this.buyIn(value)}>
+                    </PokerGiverNumberModal>
+                }
 
                 <Modal isVisible={this.state.isGoingBack}>
                     <View style={styles.modalHeader}>
