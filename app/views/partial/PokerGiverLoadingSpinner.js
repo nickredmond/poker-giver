@@ -7,11 +7,18 @@ export class PokerGiverLoadingSpinner extends React.Component {
         header: null
     }
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            loadingMessage: this.props.loadingMessage || 'Loading...'
+        };
+    }
+
     render() {
         return (
             <View style={styles.loadingView}>
                 <ActivityIndicator size='large' color='#88FF88' />
-                <PokerGiverText style={styles.loadingText} textValue={'Loading...'}></PokerGiverText>
+                <PokerGiverText style={styles.loadingText} textValue={this.state.loadingMessage}></PokerGiverText>
             </View>
         )
     }
