@@ -41,7 +41,7 @@ export class Charity extends AuthenticatedComponent {
                 const resetAction = StackActions.reset({
                     index: 0,
                     actions: [NavigationActions.navigate({ 
-                        routeName: 'CharitySearch',
+                        routeName: 'Home',
                         params: { isDonationProcessed: true }
                     })],
                   });

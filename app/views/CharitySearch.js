@@ -23,14 +23,6 @@ export class CharitySearch extends AuthenticatedComponent {
             availableBalance: 0
         }
 
-        const isDonationProcessed = this.props.navigation.getParam('isDonationProcessed') || false;
-        if (isDonationProcessed) {
-            this.state = { isDonationProcessed: true };
-            setTimeout(() => {
-                this.setState({ isDonationProcessed: false })
-            }, 5000);
-        }
-
         getPlayerAccountInfo().then(
             accountInfo => {
                 this.setState({
@@ -93,11 +85,6 @@ export class CharitySearch extends AuthenticatedComponent {
     render() {
         return (
             <View style={styles.container}>
-                {
-                    this.state.isDonationProcessed && 
-                    <Text style={styles.donationSuccessMessage}>Your donation has successfully been processed.</Text>
-                }
-
                 <PokerGiverText style={styles.areaTitle} textValue={'account overview'}></PokerGiverText>
                 <View style={styles.accountOverview}>
                     <View style={styles.accountOverviewRow}>
@@ -217,17 +204,5 @@ const styles = StyleSheet.create({
         height: 20,
        marginLeft: 'auto',
        marginRight: 'auto'
-    },
-    donationSuccessMessage: {
-        color: '#3c763d',
-        fontSize: 18,
-        marginBottom: 10,
-        padding: 10,
-        backgroundColor: '#dff0d8',
-        borderWidth: 2,
-        borderColor: '#d0e9c6',
-        borderRadius: 3,
-        textAlign: 'center',
-        marginTop: 15
     }
 })

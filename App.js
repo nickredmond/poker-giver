@@ -30,9 +30,9 @@ const AppRoutes = createStackNavigator(
       screen: Table,
       navigationOptions: ({ navigation }) => ({
         title: `${
-          navigation.state.params.tableName.length > 16 ? 
-          navigation.state.params.tableName.substring(0, 16) + '...' :
-          navigation.state.params.tableName            
+          navigation.state.params.table.name.length > 16 ? 
+          navigation.state.params.table.name.substring(0, 16) + '...' :
+          navigation.state.params.table.name            
         }`
       })
     }

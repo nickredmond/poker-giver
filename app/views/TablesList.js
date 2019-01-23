@@ -56,19 +56,20 @@ export class TablesList extends AuthenticatedComponent {
         return totalPlayers + '/' + table.numberOfPlayers;
     }
 
-    selectedTable = (tableName, gameId) => {
+    selectedTable = (table) => {
         const {navigate} = this.props.navigation;
-        navigate('Table', { tableName, gameId });
+        navigate('Table', { table });
     }
 
     getTableName = (table) => {
-        return (table.name && table.name.length > 25) ? table.name.substring(0, 25) + '...' : table.name;
+        return (table.name && table.name.length > 35) ? table.name.substring(0, 35) + '...' : table.name;
     }
 
     renderList = ({ item: table }) => {
         return (
-            <TouchableOpacity style={[styles.tableItem, styles.button]} onPress={() => this.selectedTable(table.name, table.gameId)}>
-                <Text style={styles.buttonText}>{ this.getTableName(table) }</Text>
+            <TouchableOpacity style={[styles.tableItem, styles.button]} onPress={() => this.selectedTable(table)}>
+                <Text style={[styles.buttonText, styles.tableNameText]}>{ this.getTableName(table) }</Text>
+                <Text style={[styles.buttonText, styles.turnTimerText]}>{ table.turnTimerSeconds }</Text>
                 <Text style={[styles.buttonText, styles.playersCountText]}>{ this.getPlayersCountText(table) }</Text>
             </TouchableOpacity>
         )
@@ -162,7 +163,15 @@ const styles = StyleSheet.create({
         fontSize: 24
     },
     playersCountText: {
-        marginLeft: 'auto'
+        marginLeft: 'auto',
+        flex: 1
+    },
+    turnTimerText: {
+        marginLeft: 'auto',
+        flex: 1
+    },
+    tableNameText: {
+        flex: 4
     },
     listHeader: {
         fontSize: 18,

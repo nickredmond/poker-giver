@@ -15,7 +15,8 @@ export class TableCreate extends AuthenticatedComponent {
         super(props);
         this.state = {
             numberOfPlayers: 2,
-            numberOfAiPlayers: 0
+            numberOfAiPlayers: 0,
+            turnTimerSeconds: 30
         };
     }
 
@@ -42,6 +43,14 @@ export class TableCreate extends AuthenticatedComponent {
         this.setState({ numberOfAiPlayers });
         this.checkAiPlayersWarning(numberOfAiPlayers);
     }
+    incrementTurnTime = () => {
+        const turnTimerSeconds = this.state.turnTimerSeconds + 5;
+        this.setState({ turnTimerSeconds });
+    }
+    decrementTurnTime = () => {
+        const turnTimerSeconds = this.state.turnTimerSeconds - 5;
+        this.setState({ turnTimerSeconds });
+    }
 
     unknownErrorReturned = () => {
         this.setState({ pageErrorMessage: 'There was a problem creating your table.' });
@@ -56,15 +65,16 @@ export class TableCreate extends AuthenticatedComponent {
                 const table = {
                     name: tableName,
                     numberOfPlayers: this.state.numberOfPlayers,
-                    numberOfAiPlayers: this.state.numberOfAiPlayers
+                    numberOfAiPlayers: this.state.numberOfAiPlayers,
+                    turnTimerSeconds: this.state.turnTimerSeconds
                 };
                 createTable(table, token).then(
                     result => {
                         if (result.isSuccess) {
                             const { navigate } = this.props.navigation;
+                            table.gameId = result.gameId;
                             navigate('Table', { 
-                                tableName, 
-                                gameId: result.gameId,
+                                table,
                                 isAuthor: true
                             });
                         }
@@ -129,7 +139,7 @@ export class TableCreate extends AuthenticatedComponent {
                         }
                     </View>
                 </View>
-                <View style={[styles.numberFormGroup, styles.aiFormGroup]}>
+                <View style={styles.numberFormGroup}>
                     <PokerGiverText textValue={'# AI Players'}></PokerGiverText>
                     <View style={styles.numberChanger}>
                         {
@@ -143,6 +153,23 @@ export class TableCreate extends AuthenticatedComponent {
                         {
                             this.state.numberOfAiPlayers < this.state.numberOfPlayers - 1 &&
                             <Button onPress={() => this.incrementAiPlayers()} title='  +  '></Button>
+                        }
+                    </View>
+                </View>
+                <View style={[styles.numberFormGroup, styles.aiFormGroup]}>
+                    <PokerGiverText textValue={'Turn Time (secs.)'}></PokerGiverText>
+                    <View style={styles.numberChanger}>
+                        {
+                            this.state.turnTimerSeconds > 5 &&
+                            <Button onPress={() => this.decrementTurnTime()} title='  -  '></Button>
+                        }
+                        <PokerGiverText 
+                            textValue={this.state.turnTimerSeconds}
+                            style={styles.playersCountText}>
+                        </PokerGiverText>
+                        {
+                            this.state.turnTimerSeconds < 120 &&
+                            <Button onPress={() => this.incrementTurnTime()} title='  +  '></Button>
                         }
                     </View>
                 </View>

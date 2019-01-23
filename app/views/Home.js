@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { MainMenu } from './partial/MainMenu';
 import { Login } from './partial/Login';
-import { authenticate, getPlayerInfo } from '../services/PlayerService';
+import { authenticate } from '../services/PlayerService';
 
 export class Home extends React.Component {
     static navigationOptions = {
@@ -11,10 +11,19 @@ export class Home extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const isDonationProcessed = this.props.navigation.getParam('isDonationProcessed') || false;
         this.state = {
             isLoading: true,
-            isAuthenticated: false
+            isAuthenticated: false,
+            isDonationProcessed
         };
+        
+        if (isDonationProcessed) {
+            setTimeout(() => {
+                this.setState({ isDonationProcessed: false })
+            }, 5000);
+        }
 
         authenticate().then(isValid => {
             this.setState({
@@ -57,6 +66,11 @@ export class Home extends React.Component {
                 <Text style={styles.subtitle}>poker for a better tomorrow</Text>
 
                 <View style={styles.homePageContent}>
+                    {
+                        this.state.isDonationProcessed && 
+                        <Text style={styles.donationSuccessMessage}>Your donation has successfully been submitted.</Text>
+                    }
+
                     {
                         this.state.isLoading && 
                         <View style={styles.loadingContainer}>
@@ -110,5 +124,16 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         marginTop: 25
+    },
+    donationSuccessMessage: {
+        color: '#3c763d',
+        fontSize: 18,
+        margin: 10,
+        padding: 5,
+        backgroundColor: '#dff0d8',
+        borderWidth: 2,
+        borderColor: '#d0e9c6',
+        borderRadius: 3,
+        textAlign: 'center'
     }
 });

@@ -40,12 +40,13 @@ export class Table extends AuthenticatedComponent {
         this.tableWebView = null;
 
         const { navigation } = this.props;
-        const gameId = navigation.getParam('gameId');
+        const table = navigation.getParam('table');
         const isAuthor = navigation.getParam('isAuthor');
         getPlayerInfo().then(playerInfo => {
             this.setState({ 
                 player: playerInfo,
-                gameId, 
+                gameId: table.gameId,
+                turnTimerSeconds: table.turnTimerSeconds, 
                 isModalVisible: true,
                 isAuthor: isAuthor || false
             });
@@ -72,6 +73,7 @@ export class Table extends AuthenticatedComponent {
             data = { 
                 player: this.state.player, 
                 gameId: this.state.gameId,
+                turnTimerSeconds: this.state.turnTimerSeconds,
                 numberOfChips
             };
         }
