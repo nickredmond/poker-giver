@@ -4,7 +4,7 @@ import { PokerGiverText } from './partial/PokerGiverText';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import SegmentedControlTab from 'react-native-segmented-control-tab';
 import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
-import { getRankings } from '../services/PlayerService';
+import { getRankings, getPlayerName } from '../services/PlayerService';
 
 export class Rankings extends AuthenticatedComponent {
     static navigationOptions = {
@@ -19,11 +19,25 @@ export class Rankings extends AuthenticatedComponent {
             weeklyRankingTitle: 'this week'
         }
         this.leaderboardChanged('current');
+
+        getPlayerName().then(
+            playerName => {
+                this.setState({ playerName });
+            },
+            () => {
+                alert('There was a problem reading from your device.');
+            }
+        )
+    }
+
+    getRankingStyle = (playerName) => {
+        const style = playerName === this.state.playerName ? [styles.ranking, styles.highlightedRanking] : styles.ranking;
+        return style;
     }
 
     renderList = ({ item: ranking }) => {
         return (
-            <View style={styles.ranking}>
+            <View style={this.getRankingStyle(ranking.playerName)}>
                 {
                     ranking.winningAmount && 
                    <View style={styles.winningContainer}>
@@ -93,7 +107,7 @@ export class Rankings extends AuthenticatedComponent {
                 {
                     this.state && this.state.weeklyRankings &&
                     <View style={styles.listContainer}>
-                    <PokerGiverText style={styles.rankingsTitle} textValue={this.state.weeklyRankingTitle}></PokerGiverText>
+                        <PokerGiverText style={styles.rankingsTitle} textValue={this.state.weeklyRankingTitle}></PokerGiverText>
                         <FlatList data={this.state.weeklyRankings} renderItem={this.renderList} />
                     </View>
                 }
@@ -113,12 +127,16 @@ const styles = StyleSheet.create({
     },
     ranking: {
         backgroundColor: '#88FF88',
-        marginTop: 10,
         padding: 5,
         flexDirection: 'row',
         marginLeft: 10,
-        marginRight: 10
+        marginRight: 10,
+        marginBottom: 10
     },
+    highlightedRanking: {
+        borderColor: '#DDDD77',
+        borderWidth: 3
+    },  
     leaderboardPicker: {
         backgroundColor: '#117711',
         color: 'white',

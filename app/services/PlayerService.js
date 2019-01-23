@@ -221,6 +221,19 @@ export const getPlayerInfo = () => {
     })
 }
 
+export const getPlayerName = () => {
+    return new Promise((resolve, reject) => {
+        AsyncStorage.getItem('player-name', (err, playerName) => {
+            if (err) {
+                reject('Error reading from device storage.');
+            }
+            else {
+                resolve(playerName);
+            }
+        });
+    });
+}
+
 export const getUserToken = () => {
     return new Promise((resolve, reject) => {
         AsyncStorage.getItem('user-token', (err, token) => {
