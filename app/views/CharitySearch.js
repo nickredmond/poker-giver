@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
     },
     donationSuccessMessage: {
         color: '#3c763d',
+        fontSize: 18,
         marginBottom: 10,
         padding: 10,
         backgroundColor: '#dff0d8',
