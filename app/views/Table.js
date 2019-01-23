@@ -148,6 +148,8 @@ export class Table extends AuthenticatedComponent {
                     this.state && this.state.player && 
                     <PokerGiverNumberModal 
                         isModalVisible={this.state.isModalVisible}
+                        title={'Buy In'}
+                        confirmText={'Buy In'}
                         inputValuePlaceholder={'Enter buy-in amount...'}
                         message={this.getAddChipsModalMessage()}
                         amountTooLargeMessage={'Amount entered exceeds available chips.'}

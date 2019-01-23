@@ -4,6 +4,7 @@ import { PokerGiverText } from './partial/PokerGiverText';
 import { PokerGiverButton } from './partial/PokerGiverButton';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent'; 
 import { CharityNavigatorAttribution } from './partial/CharityNavigatorAttribution';
+import { PokerGiverNumberModal } from './partial/PokerGiverNumberModal';
 
 export class Charity extends AuthenticatedComponent {
     static navigationOptions = {
@@ -15,16 +16,41 @@ export class Charity extends AuthenticatedComponent {
         const { navigation } = this.props;
         const charity = navigation.getParam('charity');
         const availableBalance = navigation.getParam('availableBalance');
-        this.state = { charity, availableBalance };
+        this.state = { charity, availableBalance, isModalVisible: false };
     }
 
     goToCharitySite = (siteUrl) => {
         Linking.openURL(siteUrl);
     }
 
+    getDonationModalMessage = () => {
+        const availableBalance = this.state.availableBalance || 0;
+        return 'Available Balance: $' + availableBalance;
+    }
+
+    submitDonation = (donationValue) => {
+        this.setState({ isModalVisible: false })
+        alert('donate this: ' + donationValue);
+    }
+
     render() {
         return (
             <View style={styles.container}>
+                {
+                    this.state && 
+                    <PokerGiverNumberModal
+                        isModalVisible={this.state.isModalVisible}
+                        title={'Make Donation'}
+                        confirmText={'Donate'}
+                        inputValuePlaceholder={'Enter donation amount...'}
+                        message={this.getDonationModalMessage()}
+                        amountTooLargeMessage={'Amount entered exceeds available balance.'}
+                        availableValue={this.state.availableBalance}
+                        valueCancelled={() => this.setState({ isModalVisible: false })}
+                        valueSubmitted={value => this.submitDonation(value)}>
+                    </PokerGiverNumberModal>
+                }
+
                 <PokerGiverText style={styles.charityName} textValue={this.state.charity.name}></PokerGiverText>
                 <PokerGiverText style={styles.missionHeader} textValue={'mission:'}></PokerGiverText>
                 <ScrollView style={styles.missionTextScroller}>
@@ -43,7 +69,10 @@ export class Charity extends AuthenticatedComponent {
                         onButtonPress={() => this.goToCharitySite(this.state.charity.websiteURL)}
                         buttonTitle={'visit site'}>
                     </PokerGiverButton>
-                    <PokerGiverButton buttonTitle={'donate'}></PokerGiverButton>
+                    <PokerGiverButton 
+                        onButtonPress={() => this.setState({ isModalVisible: true })}
+                        buttonTitle={'donate'}>
+                    </PokerGiverButton>
                 </View>
             </View>
         )

@@ -54,7 +54,7 @@ export class PokerGiverNumberModal extends React.Component {
         return (
             <Modal isVisible={this.props.isModalVisible}>
                 <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Buy In</Text>
+                    <Text style={styles.modalTitle}>{ this.props.title }</Text>
                 </View>
                 <View style={styles.addChipsModal}>
                     <Text style={styles.availableChipsLabel}>{ this.props.message }</Text>
@@ -82,7 +82,7 @@ export class PokerGiverNumberModal extends React.Component {
                             <Text style={[styles.buttonText, styles.dialogButton]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.buttonBuyIn} onPress={() => this.submitValue()}>
-                            <Text style={[styles.buttonText, styles.dialogButton]}>Buy In</Text>
+                            <Text style={[styles.buttonText, styles.dialogButton]}>{ this.props.confirmText }</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
