@@ -44,7 +44,6 @@
                 position: absolute;
                 z-index: 998;
                 padding: 0.35em 1em;
-                font-size: 1.25em;
                 display: none;
                 color: white;
                 font-weight: bold;
@@ -526,19 +525,31 @@
 
         <!-- Draw functions -->
         <script>
+            var GOOGLE_PIXEL_WIDTH = 412;
+            
+            var getNormalizedFontSize = function(defaultFontSize) {
+                var fontSize = parseInt(defaultFontSize * getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                return fontSize - (fontSize % 2);
+            }
+
             var drawTable = function(ctx, x, y, width, height) {
                 var radius = 50;
                 ctx.fillStyle = "#046908";
                 ctx.strokeStyle = 'black';
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 5 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
                 roundRect(ctx, x, y, width, height, radius, true);
             }
 
             var drawPlayerInfo = function(ctx, text, x, y, yOffset) {
                 var xOffset = 5 - parseInt(text.length * 3.5);
+                xOffset *= getCanvasWidth() / GOOGLE_PIXEL_WIDTH;
                 var finalX = x + xOffset
                 var finalY = y + yOffset
                 ctx.fillStyle = 'black';
+                
+                var fontSize = getNormalizedFontSize(12);
+                ctx.font = fontSize + 'px Arial';
+
                 ctx.fillText(text, finalX, finalY);
             }
 
@@ -553,14 +564,18 @@
                 else if (playerIndex === game.currentTurnIndex) {
                     outlineColor = 'white';
                 }
+                var lineWidth = 3 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
                 circle(ctx, x, y, radius, color, outlineColor);
 
                 var isPlayerInSeat = players && players.length >= playerNumber;
                 var playerName = isPlayerInSeat ? players[playerNumber - 1].name || 'N/A' : '[Empty]';
-                drawPlayerInfo(ctx, playerName, x, y + radius, 12);
+                
+                var yOffset = 12 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                drawPlayerInfo(ctx, playerName, x, y + radius, yOffset);
                 if (isPlayerInSeat) {
                     var playerWorth = players[playerNumber - 1].numberOfChips || 0;
-                    drawPlayerInfo(ctx, playerWorth.toString(), x - 5, y + radius, 25);
+                    yOffset = 25 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                    drawPlayerInfo(ctx, playerWorth.toString(), x - 5, y + radius, yOffset);
                 }
             }
 
@@ -573,9 +588,9 @@
                 var avatarX_center_right = parseInt(tableX + (0.8 * tableWidth));
                 var avatarX_right = parseInt(tableX + (tableWidth * 1.15));
 
-                var avatarY_top = parseInt(tableY * 0.33);
+                var avatarY_top = parseInt(tableY * 0.35);
                 var avatarY_center = parseInt(tableY + (0.5 * tableHeight));
-                var avatarY_bottom = parseInt(tableY + tableHeight + (0.4 * tableY));
+                var avatarY_bottom = parseInt(tableY + tableHeight + (0.42 * tableY));
 
                 ctx.font = "12px Arial";
 
@@ -705,7 +720,8 @@
                 var x = tableX + (0.4 * tableWidth) - (offsetPerDigit * numberOfDigits);
                 var y = tableY + (0.65 * tableHeight);
 
-                ctx.font = '16px Arial';
+                var fontSize = getNormalizedFontSize(16);
+                ctx.font = fontSize + 'px Arial';
                 ctx.fillStyle = 'white';
                 ctx.fillText('pot: ' + potAmount, x, y);
             }
@@ -963,9 +979,9 @@
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     
                     var tableX = parseInt(canvas.width * 0.15);
-                    var tableY = parseInt(canvas.height * 0.15);
+                    var tableY = parseInt(canvas.width * 0.2);
                     var tableWidth = parseInt(canvas.width * 0.65);
-                    var tableHeight = parseInt(canvas.height * 0.25);
+                    var tableHeight = parseInt(canvas.width * 0.35);
 
                     drawTable(ctx, tableX, tableY, tableWidth, tableHeight);
                     drawPlayers(ctx, game.players, tableX, tableY, tableWidth, tableHeight);
@@ -1249,6 +1265,19 @@
                 gameSocket.send(JSON.stringify(startGameRquest));
                 document.getElementById('button-start-game').style.display = 'none';
             }
+
+            var getCanvasWidth = function() {
+                return document.getElementById('tableCanvas').width;
+            }
+
+            var setButtonsSize = function() {
+                var gameButtons = document.getElementsByClassName('game-button');
+                var gameButtonsFontSize = 1.25 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                [].forEach.call(gameButtons, function(button) {
+                    button.style.fontSize = gameButtonsFontSize + 'em';
+                })
+                
+            }
         </script>
 
         <script>
@@ -1316,6 +1345,8 @@
                 loadSpritesConfig();
                 loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
                 loadDialogs(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
+
+                setButtonsSize();
 
                 var millisElapsed = 1000 / 24;
                 setInterval(function() {
