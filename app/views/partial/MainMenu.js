@@ -10,16 +10,6 @@ export class MainMenu extends React.Component {
 
     constructor(props) {
         super(props);
-        getPlayerAccountInfo().then(
-            accountInfo => {
-                this.setState({
-                    isPlayerWinner: accountInfo.moneyEarned > accountInfo.moneyDonated
-                });
-            },
-            () => {
-                alert('There was a problem getting your account info.');
-            }
-        )
     }
 
     goToTables = () => {
@@ -48,15 +38,11 @@ export class MainMenu extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                {
-                    this.state && this.state.isPlayerWinner && 
-                    <PokerGiverButton 
-                        buttonColor={'#0808FF'}
-                        onButtonPress={() => this.goToDonate()} 
-                        buttonTitle={'donate'}>
-                    </PokerGiverButton>
-                }
-
+                <PokerGiverButton 
+                    buttonColor={'#0808FF'}
+                    onButtonPress={() => this.goToDonate()} 
+                    buttonTitle={'donate'}>
+                </PokerGiverButton>
                 <PokerGiverButton 
                     onButtonPress={() => this.goToTables()} 
                     buttonTitle={'play now'}>

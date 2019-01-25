@@ -25,10 +25,12 @@ export class CharitySearch extends AuthenticatedComponent {
 
         getPlayerAccountInfo().then(
             accountInfo => {
+                const availableBalance = accountInfo.moneyEarned - accountInfo.moneyDonated;
                 this.setState({
                     moneyEarned: accountInfo.moneyEarned,
                     moneyDonated: accountInfo.moneyDonated,
-                    availableBalance: accountInfo.moneyEarned - accountInfo.moneyDonated
+                    availableBalance,
+                    isCharitySearchUnlocked: availableBalance > 0
                 });
             },
             () => {
@@ -100,32 +102,51 @@ export class CharitySearch extends AuthenticatedComponent {
                         <Text style={[styles.accountOverviewText, styles.alignRight]}>${ this.state.availableBalance }</Text>
                     </View>
                 </View>
-                <PokerGiverText style={styles.areaTitle} textValue={'search for charities'}></PokerGiverText>
-                <View style={styles.searchArea}>
-                    <View style={styles.inputFormGroup}>
-                        <TextInput style={styles.input} onChangeText={text => this.setQuery(text)}></TextInput>
-                        <TouchableOpacity style={styles.searchButton} onPress={this.queryCharities.bind()}>
-                            <Image 
-                                source={require('../../assets/images/search.png')} 
-                                style={styles.searchIcon} />
-                        </TouchableOpacity>
-                    </View>
-                    <CharityNavigatorAttribution linkbackUrl={'https://www.charitynavigator.org/'}></CharityNavigatorAttribution>
-                </View>
-                <PokerGiverText style={styles.areaTitle} textValue={'results'}></PokerGiverText>
-                <View style={styles.searchResults}>
-                    {
-                        this.state && this.state.isSearching && 
-                        <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
-                    }
-
-                    {
-                        this.state && !this.state.isSearching && this.state.charities && 
-                        <View style={styles.charityResults}>
-                            <FlatList data={this.state.charities} renderItem={this.renderList}></FlatList>
+                
+                {
+                    this.state.isCharitySearchUnlocked && 
+                    <View>
+                        <PokerGiverText style={styles.areaTitle} textValue={'search for charities'}></PokerGiverText>
+                        <View style={styles.searchArea}>
+                            <View style={styles.inputFormGroup}>
+                                <TextInput style={styles.input} onChangeText={text => this.setQuery(text)}></TextInput>
+                                <TouchableOpacity style={styles.searchButton} onPress={this.queryCharities.bind()}>
+                                    <Image 
+                                        source={require('../../assets/images/search.png')} 
+                                        style={styles.searchIcon} />
+                                </TouchableOpacity>
+                            </View>
+                            <CharityNavigatorAttribution linkbackUrl={'https://www.charitynavigator.org/'}></CharityNavigatorAttribution>
                         </View>
-                    }
-                </View>
+                        <PokerGiverText style={styles.areaTitle} textValue={'results'}></PokerGiverText>
+                        <View style={styles.searchResults}>
+                            {
+                                this.state && this.state.isSearching && 
+                                <PokerGiverLoadingSpinner></PokerGiverLoadingSpinner>
+                            }
+
+                            {
+                                this.state && !this.state.isSearching && this.state.charities && 
+                                <View style={styles.charityResults}>
+                                    <FlatList data={this.state.charities} renderItem={this.renderList}></FlatList>
+                                </View>
+                            }
+                        </View>
+                    </View>
+                }
+
+                {
+                    !this.state.isCharitySearchUnlocked && 
+                    <View style={styles.notUnlockedTextContainer}>
+                        <PokerGiverText 
+                            style={styles.notUnlockedText} 
+                            textValue={'Place top 3 in either leaderboard to be given donation credits. ' +
+                                'Donation credits will be applied to "Available Balance" so you can ' + 
+                                'help the world in whatever way you choose!'
+                            }>
+                        </PokerGiverText>
+                    </View>
+                }
             </View>
         )
     }
@@ -204,5 +225,15 @@ const styles = StyleSheet.create({
         height: 20,
        marginLeft: 'auto',
        marginRight: 'auto'
+    },
+    notUnlockedText: {
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    notUnlockedTextContainer: {
+        alignItems: 'center',
+        marginLeft: 15,
+        marginRight: 15,
+        marginTop: 5
     }
 })
