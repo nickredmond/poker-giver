@@ -30,7 +30,8 @@ export class CharitySearch extends AuthenticatedComponent {
                     moneyEarned: accountInfo.moneyEarned,
                     moneyDonated: accountInfo.moneyDonated,
                     availableBalance,
-                    isCharitySearchUnlocked: availableBalance > 0
+                    isCharitySearchUnlocked: availableBalance > 0,
+                    isCharitySearchLocked: availableBalance <= 0
                 });
             },
             () => {
@@ -105,8 +106,11 @@ export class CharitySearch extends AuthenticatedComponent {
                 
                 {
                     this.state.isCharitySearchUnlocked && 
-                    <View>
-                        <PokerGiverText style={styles.areaTitle} textValue={'search for charities'}></PokerGiverText>
+                    <View style={styles.charitySearchArea}>
+                        <PokerGiverText 
+                            style={[styles.marginLeftTitle, styles.areaTitle]} 
+                            textValue={'search for charities'}>
+                        </PokerGiverText>
                         <View style={styles.searchArea}>
                             <View style={styles.inputFormGroup}>
                                 <TextInput style={styles.input} onChangeText={text => this.setQuery(text)}></TextInput>
@@ -118,7 +122,10 @@ export class CharitySearch extends AuthenticatedComponent {
                             </View>
                             <CharityNavigatorAttribution linkbackUrl={'https://www.charitynavigator.org/'}></CharityNavigatorAttribution>
                         </View>
-                        <PokerGiverText style={styles.areaTitle} textValue={'results'}></PokerGiverText>
+                        <PokerGiverText 
+                            style={[styles.marginLeftTitle, styles.areaTitle]} 
+                            textValue={'results'}>
+                        </PokerGiverText>
                         <View style={styles.searchResults}>
                             {
                                 this.state && this.state.isSearching && 
@@ -136,7 +143,7 @@ export class CharitySearch extends AuthenticatedComponent {
                 }
 
                 {
-                    !this.state.isCharitySearchUnlocked && 
+                    this.state.isCharitySearchLocked && 
                     <View style={styles.notUnlockedTextContainer}>
                         <PokerGiverText 
                             style={styles.notUnlockedText} 
@@ -182,6 +189,9 @@ const styles = StyleSheet.create({
     },
     areaTitle: {
         fontSize: 24
+    }, 
+    marginLeftTitle: {
+        marginLeft: 15
     },  
     alignRight: {
         marginLeft: 'auto'
@@ -235,5 +245,9 @@ const styles = StyleSheet.create({
         marginLeft: 15,
         marginRight: 15,
         marginTop: 5
+    },
+    charitySearchArea: { 
+        flex: 1,
+        alignSelf: 'stretch'
     }
 })
