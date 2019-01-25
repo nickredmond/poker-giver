@@ -31,7 +31,9 @@ export class Rankings extends AuthenticatedComponent {
     }
 
     getRankingStyle = (playerName) => {
-        const style = playerName === this.state.playerName ? [styles.ranking, styles.highlightedRanking] : styles.ranking;
+        const style = playerName === this.state.playerName ? 
+            [styles.ranking, styles.highlightedRanking] : 
+            [styles.ranking, styles.defaultRanking];
         return style;
     }
 
@@ -126,16 +128,17 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     ranking: {
-        backgroundColor: '#88FF88',
         padding: 5,
         flexDirection: 'row',
         marginLeft: 10,
         marginRight: 10,
         marginBottom: 10
     },
+    defaultRanking: {
+        backgroundColor: '#88FF88'
+    },
     highlightedRanking: {
-        borderColor: '#DDDD77',
-        borderWidth: 3
+        backgroundColor: '#C6FFC6'
     },  
     leaderboardPicker: {
         backgroundColor: '#117711',
