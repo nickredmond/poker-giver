@@ -58,6 +58,10 @@ export class Home extends React.Component {
         const { navigate } = this.props.navigation;
         navigate('CharitySearch');
     }
+    goToDonations = () => {
+        const { navigate } = this.props.navigation;
+        navigate('Donations');
+    }
 
     render() {
         return (
@@ -84,6 +88,7 @@ export class Home extends React.Component {
                             goToTables={this.goToTables} 
                             goToRankings={this.goToRankings}
                             goToDonate={this.goToDonate}
+                            goToDonations={this.goToDonations}
                             loggedOut={this.loggedOut}>
                         </MainMenu>
                     }

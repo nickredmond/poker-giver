@@ -31,6 +31,9 @@ export class MainMenu extends React.Component {
     goToDonate = () => {
         this.props.goToDonate();
     }
+    goToDonations = () => {
+        this.props.goToDonations();
+    }
     logOut = () => {
         logOut().then(isSuccess => {
             if (isSuccess) {
@@ -45,6 +48,15 @@ export class MainMenu extends React.Component {
     render() {
         return (
             <View style={styles.container}>
+                {
+                    this.state && this.state.isPlayerWinner && 
+                    <PokerGiverButton 
+                        buttonColor={'#0808FF'}
+                        onButtonPress={() => this.goToDonate()} 
+                        buttonTitle={'donate'}>
+                    </PokerGiverButton>
+                }
+
                 <PokerGiverButton 
                     onButtonPress={() => this.goToTables()} 
                     buttonTitle={'play now'}>
@@ -53,15 +65,10 @@ export class MainMenu extends React.Component {
                     onButtonPress={() => this.goToRankings()} 
                     buttonTitle={'rankings'}>
                 </PokerGiverButton>
-
-                {
-                    this.state && this.state.isPlayerWinner && 
-                    <PokerGiverButton 
-                    onButtonPress={() => this.goToDonate()} 
-                    buttonTitle={'donate'}>
+                <PokerGiverButton 
+                    onButtonPress={() => this.goToDonations()} 
+                    buttonTitle={'donations'}>
                 </PokerGiverButton>
-                }
-
                 <PokerGiverButton 
                     onButtonPress={() => this.logOut()} 
                     buttonTitle={'log out'}>

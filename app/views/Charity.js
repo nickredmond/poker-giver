@@ -6,7 +6,7 @@ import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { CharityNavigatorAttribution } from './partial/CharityNavigatorAttribution';
 import { PokerGiverNumberModal } from './partial/PokerGiverNumberModal';
 import { PokerGiverLoadingSpinner } from './partial/PokerGiverLoadingSpinner';
-import { makeDonation } from '../services/PlayerService';
+import { makeDonation } from '../services/DonationService';
 import { StackActions, NavigationActions } from 'react-navigation';
 
 export class Charity extends AuthenticatedComponent {

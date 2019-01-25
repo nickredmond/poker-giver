@@ -22,10 +22,12 @@ import { TableCreate } from './app/views/TableCreate';
 import { Rankings } from './app/views/Rankings';
 import { CharitySearch } from './app/views/CharitySearch';
 import { Charity } from './app/views/Charity';
+import { Donations } from './app/views/Donations';
 
 const AppRoutes = createStackNavigator(
   {
-    Home, TablesList, TableCreate, Rankings, CharitySearch, Charity,
+    Home, TablesList, TableCreate, Rankings, CharitySearch, 
+    Charity, Donations,
     Table: {
       screen: Table,
       navigationOptions: ({ navigation }) => ({

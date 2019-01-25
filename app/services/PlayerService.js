@@ -360,29 +360,3 @@ export const getPlayerAccountInfo = () => {
         )
     })
 }
-
-export const makeDonation = (donationAmount, charityName) => {
-    return new Promise((resolve, reject) => {
-        getUserToken().then(
-            token => {
-                fetch(getApiUrl() + 'player/donate', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ token, donationAmount, charityName })
-                }).then(response => {
-                    if (response.ok) {
-                        resolve();
-                    }
-                    else {
-                        reject('Error submitting player donation');
-                    }
-                })
-            },
-            err => {
-                reject(err);
-            }
-        )
-    })
-}

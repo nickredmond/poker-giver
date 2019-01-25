@@ -6,22 +6,39 @@ export class PokerGiverButton extends React.Component {
         header: null
     };
 
+    static buttonStyle = {
+        padding: 10,
+        marginBottom: 20,
+        width: '50%'
+    };
+    static defaultButtonColor = {
+        backgroundColor: '#117711'
+    };
+
+    getButtonStyle = () => {
+        const styles = [PokerGiverButton.buttonStyle];
+
+        if (this.props.buttonColor) {
+            const customButtonColor = { backgroundColor: this.props.buttonColor };
+            styles.push(customButtonColor);
+        }
+        else {
+            styles.push(PokerGiverButton.defaultButtonColor);
+        }
+
+        return styles;
+    }
+
     render() {
         return (
-            <TouchableOpacity style={styles.createTableButton} onPress={() => this.props.onButtonPress()}>
+            <TouchableOpacity style={this.getButtonStyle()} onPress={() => this.props.onButtonPress()}>
                 <Text style={styles.createTableButtonText}>{this.props.buttonTitle}</Text>
             </TouchableOpacity>
         )
     }
 }
 
-export const styles = StyleSheet.create({
-    createTableButton: {
-        backgroundColor: '#117711',
-        padding: 10,
-        marginBottom: 20,
-        width: '50%'
-    },
+export const styles = StyleSheet.create({ 
     createTableButtonText: {
         color: '#efefef',
         textAlign: 'center',
