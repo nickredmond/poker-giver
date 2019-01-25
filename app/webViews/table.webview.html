@@ -21,7 +21,7 @@
             <div id="flash-error" class="alert alert-danger"></div>
             <div id="modal-overlay"></div>
             <div id="bet-amount-dialog">
-                <p>Enter amount:</p>
+                <p id="bet-amount-dialog-prompt">Enter amount:</p>
                 <input id="bet-amount" type="number" />
                 <div id="bet-button-holder">
                     <button id="cancel-button" class="bet-dialog-button" onclick="hideBetAmountDialog()">Cancel</button>
@@ -213,7 +213,6 @@
                 margin-top: 0.5em;
                 padding: 0.5em;
                 color: white;
-                font-size: 1.25em;
                 background-color: #117711;
                 display: none;
                 border: none;
@@ -612,17 +611,27 @@
                 roundRect(ctx, x, y, width, height, 5, false, true);
 
                 ctx.fillStyle = 'black';
-                ctx.font = '24px Arial';
+                var fontSize = getNormalizedFontSize(24);
+                ctx.font = fontSize + 'px Arial';
 
                 if (rank.length > 1) {
                     x -= 5;
                 }
 
-                ctx.fillText(rank, x + 8, y + 25);
+                var canvasWidthRatio = (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                var xOffset = 8 * canvasWidthRatio;
+                var yOffset = 25 * canvasWidthRatio;
+                ctx.fillText(rank, x + xOffset, y + yOffset);
+
                 var source = suitSpriteLocations[suit];
-                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 12, y + 28, width * 0.7, height * 0.5);
+                xOffset = 12 * canvasWidthRatio
+                yOffset = 28 * canvasWidthRatio;
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + xOffset, y + yOffset, width * 0.7, height * 0.5);
+                
                 var rightOffsetX = rank.length > 1 ? 27 : 22;
-                ctx.fillText(rank, x + width - rightOffsetX, y + height - 10);
+                rightOffsetX *= canvasWidthRatio;
+                yOffset = 10 * canvasWidthRatio;
+                ctx.fillText(rank, x + width - rightOffsetX, y + height - yOffset);
             }
 
             var drawUserHand = function(ctx, canvas, rank1, suit1, rank2, suit2) {
@@ -656,22 +665,25 @@
                     { x: tableX + (tableWidth / 3) - (tableWidth / 6), y: tableY + tableHeight - 10 }
                 ];
 
-                circle(ctx, blindLocations[game.bigBlindIndex].x, blindLocations[game.bigBlindIndex].y, 5, 'red', 'red', 1);
-                circle(ctx, blindLocations[game.bigBlindIndex].x + 10, blindLocations[game.bigBlindIndex].y, 5, 'red', 'red', 1);
-                circle(ctx, blindLocations[game.littleBlindIndex].x, blindLocations[game.littleBlindIndex].y, 5, 'red', 'red', 1);
+                var radius = parseInt(5 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH));
+                circle(ctx, blindLocations[game.bigBlindIndex].x, blindLocations[game.bigBlindIndex].y, radius, 'red', 'red', 1);
+                circle(ctx, blindLocations[game.bigBlindIndex].x + (2 * radius), blindLocations[game.bigBlindIndex].y, radius, 'red', 'red', 1);
+                circle(ctx, blindLocations[game.littleBlindIndex].x, blindLocations[game.littleBlindIndex].y, radius, 'red', 'red', 1);
             }
 
             var drawPlayerHands = function(ctx, tableX, tableY, tableWidth, tableHeight) {
                 var index = 0;
                 ctx.fillStyle = 'grey';
+                var cardWidth = 5 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                var cardHeight = 8 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
 
                 game.players.forEach(player => {
                     var playerDeckLocation = getPlayerDeckLocation(index, tableX, tableY, tableWidth, tableHeight);
                     if (player.card1) {
-                        ctx.fillRect(playerDeckLocation.x - 6, playerDeckLocation.y, 5, 8);
+                        ctx.fillRect(playerDeckLocation.x - cardWidth - 1, playerDeckLocation.y, cardWidth, cardHeight);
                     }
                     if (player.card2) {
-                        ctx.fillRect(playerDeckLocation.x + 1, playerDeckLocation.y, 5, 8);
+                        ctx.fillRect(playerDeckLocation.x + 1, playerDeckLocation.y, cardWidth, cardHeight);
                     }
 
                     index++;
@@ -687,16 +699,23 @@
                 roundRect(ctx, x, y, width, height, 5, true, false);
                 roundRect(ctx, x, y, width, height, 5, false, true);
 
+                var canvasWidthRatio = getCanvasWidth() / GOOGLE_PIXEL_WIDTH;
+
                 ctx.fillStyle = 'black';
-                ctx.font = '18px Arial';
+                ctx.font = (18 * canvasWidthRatio) + 'px Arial';
 
                 if (rank.length > 1) {
                     x -= 5;
                 }
 
-                ctx.fillText(rank, x + 5, y + 15);
+                var xOffset = 5 * canvasWidthRatio;
+                var yOffset = 15 * canvasWidthRatio;
+                ctx.fillText(rank, x + xOffset, y + yOffset);
+
                 var source = suitSpriteLocations[suit];
-                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 8, y + 17, width * 0.7, height * 0.5);
+                xOffset = 8 * canvasWidthRatio;
+                yOffset = 17 * canvasWidthRatio;
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + xOffset, y + yOffset, width * 0.7, height * 0.5);
             }
 
             var drawCardsOnTable = function(ctx, tableX, tableY, tableWidth, tableHeight) {
@@ -749,16 +768,23 @@
                 roundRect(ctx, x, y - 5, width, height, 5, true, false);
                 roundRect(ctx, x, y - 5, width, height, 5, false, true);
 
+                var canvasWidthRatio = getCanvasWidth() / GOOGLE_PIXEL_WIDTH;
+
                 ctx.fillStyle = 'black';
-                ctx.font = '16px Arial';
+                ctx.font = (16 * canvasWidthRatio) + 'px Arial';
 
                 if (rank.length > 1) {
                     x -= 5;
                 }
 
-                ctx.fillText(rank, x + 5, y + 10);
+                var xOffset = 5 * canvasWidthRatio;
+                var yOffset = 10 * canvasWidthRatio;
+                ctx.fillText(rank, x + xOffset, y + yOffset);
                 var source = suitSpriteLocations[suit];
-                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + 7, y + 10, width * 0.6, height * 0.4);
+
+                xOffset = 7 * canvasWidthRatio;
+                yOffset = 10 * canvasWidthRatio;
+                ctx.drawImage(suitsSprite, source.getX(), source.getY(), source.getWidth(), source.getHeight(), x + xOffset, y + yOffset, width * 0.6, height * 0.4);
             }
         </script>
 
@@ -962,10 +988,14 @@
                 ctx.fillStyle = 'rgb(' + r + ', ' + g + ', 0)';
                 ctx.fillRect(adjustedX, y, currentBarWidth, 5);
 
-                ctx.font = '28px Arial';
+                var canvasWidthRatio = (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                var fontSize = 28 * canvasWidthRatio;
+                ctx.font = fontSize + 'px Arial';
                 ctx.fillStyle = 'black';
                 var numberOfSecondsRemaining = Math.ceil(currentTurnTimer / totalTurnTime * turnTimerSeconds);
-                ctx.fillText(numberOfSecondsRemaining, x + (barWidth / 2) - 15, y + 30);
+                var yOffset = 30 * canvasWidthRatio;
+                var xOffset = 15 * canvasWidthRatio;
+                ctx.fillText(numberOfSecondsRemaining, x + (barWidth / 2) - xOffset, y + yOffset);
 
                 if (currentTurnTimer <= 0) {
                     isTimeElapsed = true;
@@ -1271,12 +1301,36 @@
             }
 
             var setButtonsSize = function() {
+                var canvasWidthRatio = (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+
                 var gameButtons = document.getElementsByClassName('game-button');
-                var gameButtonsFontSize = 1.25 * (getCanvasWidth() / GOOGLE_PIXEL_WIDTH);
+                var gameButtonsFontSize = 1.25 * canvasWidthRatio;
                 [].forEach.call(gameButtons, function(button) {
                     button.style.fontSize = gameButtonsFontSize + 'em';
                 })
                 
+                var dialogText = document.getElementById('bet-amount-dialog-prompt');
+                dialogText.style.fontSize = (1.25 * canvasWidthRatio) + 'em';
+
+                var betDialogButtons = document.getElementsByClassName('bet-dialog-button');
+                var buttonsFontSize = canvasWidthRatio;
+                [].forEach.call(betDialogButtons, function(button) {
+                    button.style.fontSize = buttonsFontSize + 'em';
+                });
+
+                var buttonStartSame = document.getElementById('button-start-game');
+                buttonStartSame.style.fontSize = (1.25 * canvasWidthRatio) + 'em';
+
+                var messageBox = document.getElementById('message-box');
+                var messageListBox = document.getElementById('message-list-box');
+                var messageFontSize = 1.15 * canvasWidthRatio;
+                messageBox.style.fontSize = messageFontSize + 'em';
+                messageListBox.style.fontSize = messageFontSize + 'em';
+
+                var flashMessage = document.getElementById('flash-message');
+                var flashError = document.getElementById('flash-error');
+                flashMessage.style.fontSize = messageFontSize + 'em';
+                flashError.style.fontSize = messageFontSize + 'em';
             }
         </script>
 
@@ -1330,33 +1384,37 @@
                             beginListenForMessages();
                         }
                    } catch (err) {
-                       alert('capture it ' + err.name + err.message + err.stack)
                        setMessageText('Error joining game.');
                    }
                });
 
-                setUserActions();
+                try {
+                    setUserActions();
 
-                var canvas = document.getElementById('tableCanvas');
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight - 20;
-                var canvasRect = canvas.getBoundingClientRect();
+                    var canvas = document.getElementById('tableCanvas');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight - 20;
+                    var canvasRect = canvas.getBoundingClientRect();
 
-                loadSpritesConfig();
-                loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
-                loadDialogs(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
+                    loadSpritesConfig();
+                    loadButtons(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
+                    loadDialogs(canvasRect.left, canvasRect.top, canvas.width, canvas.height);
 
-                setButtonsSize();
+                    setButtonsSize();
 
-                var millisElapsed = 1000 / 24;
-                setInterval(function() {
-                    if (game && currentPlayer) {
-                        update(millisElapsed);
-                        draw(canvas, millisElapsed);
-                    }
-                }, millisElapsed);
+                    var millisElapsed = 1000 / 24;
+                    setInterval(function() {
+                        if (game && currentPlayer) {
+                            update(millisElapsed);
+                            draw(canvas, millisElapsed);
+                        }
+                    }, millisElapsed);
 
-                setMessageText("Joining table...");
+                    setMessageText("Joining table...");
+                } catch (err) {
+                    alert('Its an err ' + err.name + ', ' + err.message + ', ' + err.stack)
+                    setMessageText('Error joining game.');
+                }
             }
         </script>
 
