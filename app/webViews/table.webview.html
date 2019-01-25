@@ -1146,6 +1146,7 @@
                                 if (matchingPlayers.length > 0) {
                                     matchingPlayers[0].numberOfChips += message.numberOfChips;
                                 }
+                                displayFlashMessage('Player "' + message.playerName + '" has joined the game.');
                             }
                             break;
                         case 'playerLeft':
