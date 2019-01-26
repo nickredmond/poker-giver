@@ -57,7 +57,12 @@ export class PokerGiverNumberModal extends React.Component {
                     <Text style={styles.modalTitle}>{ this.props.title }</Text>
                 </View>
                 <View style={styles.addChipsModal}>
+                    
                     <Text style={styles.availableChipsLabel}>{ this.props.message }</Text>
+                    {
+                        this.props.subtext && 
+                        <Text style={styles.subtext}>{ this.props.subtext }</Text>
+                    }
                     <View style={styles.buyInAmountContainer}>
                         <TextInput 
                             keyboardType='numeric' 
@@ -111,6 +116,13 @@ const styles = StyleSheet.create({
     availableChipsLabel: {
         fontSize: 24
     },
+    subtext: {
+        fontSize: 18,
+        color: '#888',
+        fontStyle: 'italic',
+        margin: 10,
+        textAlign: 'center'
+    },  
     buyInAmount: {
         fontSize: 18
     },

@@ -6,7 +6,8 @@ import {
 import Modal from 'react-native-modal';
 import { AuthenticatedComponent } from '../shared/AuthenticatedComponent';
 import { PokerGiverNumberModal } from './partial/PokerGiverNumberModal';
-import { isAuthorOfGame, getPlayerInfo, removeChips } from '../services/PlayerService';
+import { isAuthorOfGame, getPlayerInfo, removeChips, resetChips, getUserToken } from '../services/PlayerService';
+import { DEFAULT_NUMBER_OF_CHIPS } from '../services/Constants';
 
 const headerStyles = StyleSheet.create({
     backButton: {
@@ -43,7 +44,31 @@ export class Table extends AuthenticatedComponent {
         const table = navigation.getParam('table');
         const isAuthor = navigation.getParam('isAuthor');
         getPlayerInfo().then(playerInfo => {
-            this.setState({ 
+            if (playerInfo.numberOfChips < 500) {
+                getUserToken().then(
+                    token => {
+                        const numberOfChipsAdded = DEFAULT_NUMBER_OF_CHIPS - playerInfo.numberOfChips;
+                        resetChips(token).then(
+                            () => {
+                                const updatedPlayer = this.state.player;
+                                updatedPlayer.numberOfChips = DEFAULT_NUMBER_OF_CHIPS;
+                                this.setState({
+                                    player: updatedPlayer,
+                                    numberOfChipsAdded
+                                })
+                            },
+                            () => {
+                                alert('There was a problem adding new chips to your account.');
+                            }
+                        )
+                    },
+                    () => {
+                        alert('There was a problem authenticating your account.')
+                    }
+                )
+            }
+
+            this.setState({                
                 player: playerInfo,
                 gameId: table.gameId,
                 turnTimerSeconds: table.turnTimerSeconds, 
@@ -143,6 +168,12 @@ export class Table extends AuthenticatedComponent {
         return 'Available Chips: ' + availableChips;
     }
 
+    getAddChipsDialogSubtext = () => {
+        return this.state.numberOfChipsAdded ? 
+            this.state.numberOfChipsAdded + ' chips have been added to your account.' :
+            null;
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -154,6 +185,7 @@ export class Table extends AuthenticatedComponent {
                         confirmText={'Buy In'}
                         inputValuePlaceholder={'Enter buy-in amount...'}
                         message={this.getAddChipsModalMessage()}
+                        subtext={this.getAddChipsDialogSubtext()}
                         amountTooLargeMessage={'Amount entered exceeds available chips.'}
                         availableValue={this.state.player.numberOfChips}
                         valueCancelled={() => this.setState({ isModalVisible: false })}

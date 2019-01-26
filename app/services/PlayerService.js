@@ -172,9 +172,36 @@ export const removeChips = (numberOfChips, userToken) => {
                 else {
                     resolve(false);
                 }
+            },
+            () => {
+                reject('There was an error deducting chips from player.');
             }
         );
     });
+}
+
+export const resetChips = (userToken) => {
+    return new Promise((resolve, reject) => {
+        fetch(getApiUrl() + 'player/resetChips', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: userToken })
+        }).then(
+            response => {
+                if (response.ok) {
+                    resolve();
+                }
+                else {
+                    reject('Error resetting user chips');
+                }
+            },
+            () => {
+                reject('Error resetting user chips');
+            }
+        )
+    })
 }
 
 export const getPlayerInfo = () => {
