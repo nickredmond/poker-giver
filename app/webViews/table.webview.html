@@ -1344,11 +1344,8 @@
             var currentUserToken = null; // todo: move to local storage or something?
             var turnTimerSeconds = 0;
 
-            alert('fuck it')
-
             window.onload = function() {
                 try {
-                    alert('connecting to game')
                     gameSocket = new WebSocket('wss://www.poker-giver.com/');
                     beginPing();
                 } catch (err) {
@@ -1393,7 +1390,7 @@
                         }
                    } catch (err) {
                        setMessageText('Error joining game.');
-                       alert('an err ' + err.name + ', ' + err.message)
+                       alert('Error joining table ' + err.name + ', ' + err.message)
                    }
                });
 
