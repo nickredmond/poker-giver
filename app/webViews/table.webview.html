@@ -1344,9 +1344,16 @@
             var currentUserToken = null; // todo: move to local storage or something?
             var turnTimerSeconds = 0;
 
+            alert('fuck it')
+
             window.onload = function() {
-                gameSocket = new WebSocket('ws://poker-giver.herokuapp.com/');
-                beginPing();
+                try {
+                    alert('connecting to game')
+                    gameSocket = new WebSocket('wss://www.poker-giver.com/');
+                    beginPing();
+                } catch (err) {
+                    alert('Error connecting to game. ' + err.name + ': ' + err.message + ', ' + err.stack);
+                }
 
                 // /// GAME READY/INIT
                document.addEventListener("message", function(event) {
@@ -1386,6 +1393,7 @@
                         }
                    } catch (err) {
                        setMessageText('Error joining game.');
+                       alert('an err ' + err.name + ', ' + err.message)
                    }
                });
 
