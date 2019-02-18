@@ -159,6 +159,7 @@ export class Table extends AuthenticatedComponent {
         this.setState({ isGoingBack: false });
     }
     leaveTable = () => {
+        const x = 0; // remove, just part of troubleshooting
         const { navigate } = this.props.navigation;
         navigate('TablesList')
     }

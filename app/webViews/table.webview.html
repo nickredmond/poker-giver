@@ -1347,6 +1347,7 @@
             window.onload = function() {
                 try {
                     gameSocket = new WebSocket('wss://www.poker-giver.com/');
+                    // this has been updated
                     beginPing();
                 } catch (err) {
                     alert('Error connecting to game. ' + err.name + ': ' + err.message + ', ' + err.stack);
@@ -1418,6 +1419,7 @@
 
                     setMessageText("Joining table...");
                 } catch (err) {
+                    // todo: get rid of this or log more subtly
                     alert('Its an err ' + err.name + ', ' + err.message + ', ' + err.stack)
                     setMessageText('Error joining game.');
                 }
